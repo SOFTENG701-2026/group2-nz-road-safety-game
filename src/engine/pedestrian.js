@@ -1,5 +1,5 @@
-// Pedestrian crossing logic: starts crossing when the player either is
-// far away OR has stopped close to the zebra.
+// Pedestrian crossing logic. The pedestrian starts crossing when the player
+// is far away or has stopped close to the zebra crossing.
 import { MAIN_Y, PED_X } from './constants.js';
 import { setCoach, logEvent } from './state.js';
 
@@ -13,10 +13,8 @@ export function stepPedestrian(g, dt) {
     const playerApproaching = dx < 0 && dx > -180;
 
     if (!playerApproaching) {
-      // Player not in the danger window — pedestrian will eventually cross
       if (p.t > 3) { p.state = 'crossing'; p.t = 0; }
     } else if (Math.abs(c.speed) < 8 && dx > -110) {
-      // Player has stopped close — let them go
       p.state = 'crossing';
       p.t = 0;
       if (!g.flags.pedAlerted) {

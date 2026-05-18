@@ -12,9 +12,9 @@ export default function ProgressBar({ carX }) {
         fontSize: 8, letterSpacing: 1.5, color: 'rgba(255,255,255,0.45)',
         marginBottom: 4,
       }}>
-        <span>START · MILFORD</span>
+        <span>START - MILFORD</span>
         <span style={{ fontVariantNumeric: 'tabular-nums' }}>{Math.round(progress * 100)}%</span>
-        <span>DEST · TAKAPUNA</span>
+        <span>DEST - TAKAPUNA</span>
       </div>
 
       <div style={{
@@ -22,7 +22,6 @@ export default function ProgressBar({ carX }) {
         background: 'rgba(255,255,255,0.08)',
         borderRadius: 2,
       }}>
-        {/* Filled portion */}
         <div style={{
           position: 'absolute', left: 0, top: 0, bottom: 0,
           width: `${progress * 100}%`,
@@ -30,7 +29,6 @@ export default function ProgressBar({ carX }) {
           borderRadius: 2,
         }} />
 
-        {/* Hazard ticks */}
         {MISSION_HAZARDS.map((h) => {
           const p = (h.x - START_X) / (FINISH_X - START_X);
           return (
@@ -49,7 +47,6 @@ export default function ProgressBar({ carX }) {
           );
         })}
 
-        {/* Player dot */}
         <div style={{
           position: 'absolute',
           left: `${progress * 100}%`,

@@ -8,7 +8,7 @@ import { setCoach, logEvent } from './state.js';
 export function stepCoachEvents(g, dt) {
   const c = g.car;
 
-  // ── School zone ──────────────────────────────────────────────
+  // School zone
   if (c.x > SCHOOL_ZONE.x1 - 140 && c.x < SCHOOL_ZONE.x1 - 60 && !g.flags.schoolWarned) {
     setCoach(g, 'schoolEnter');
     g.flags.schoolWarned = true;
@@ -27,13 +27,13 @@ export function stepCoachEvents(g, dt) {
   if (c.x > SCHOOL_ZONE.x2 + 30 && g.flags.schoolEntered && !g.flags.schoolDone) {
     g.flags.schoolDone = true;
     if (!g.flags.schoolViolated) {
-      logEvent(g, 'School zone — speed kept', +10);
+      logEvent(g, 'School zone speed kept', +10);
       g.objectives.find(o => o.id === 'school').done = true;
       setCoach(g, 'schoolGood');
     }
   }
 
-  // ── Pedestrian crossing ──────────────────────────────────────
+  // Pedestrian crossing
   if (c.x > PED_X - 200 && c.x < PED_X - 80 && !g.flags.pedNoticed) {
     setCoach(g, 'pedAhead');
     g.flags.pedNoticed = true;
@@ -56,7 +56,7 @@ export function stepCoachEvents(g, dt) {
     }
   }
 
-  // ── Give-way intersection ────────────────────────────────────
+  // Give-way intersection
   if (c.x > SIDE_X - 280 && c.x < SIDE_X - 100 && !g.flags.gaveWayWarned) {
     setCoach(g, 'giveWayAhead');
     g.flags.gaveWayWarned = true;
@@ -68,7 +68,7 @@ export function stepCoachEvents(g, dt) {
     setCoach(g, 'giveWayGood');
   }
 
-  // ── Wrong side of road ───────────────────────────────────────
+  // Wrong side of road
   if (onRoadMain(c.x, c.y) && Math.abs(c.speed) > 12 && !onLeftSide(c)) {
     g.flags.wrongSideTimer = (g.flags.wrongSideTimer || 0) + dt;
     if (g.flags.wrongSideTimer > 0.6 && !g.flags.wrongSideWarned) {
@@ -85,13 +85,13 @@ export function stepCoachEvents(g, dt) {
     g.objectives.find(o => o.id === 'left').done = true;
   }
 
-  // ── Open-road speeding warning ───────────────────────────────
+  // Open-road speeding warning
   if (!inSchoolZone(c.x) && pxToKmh(Math.abs(c.speed)) > 50 && !g.flags.generalSpeedWarned) {
     setCoach(g, 'speeding');
     g.flags.generalSpeedWarned = true;
   }
 
-  // ── Finish line ──────────────────────────────────────────────
+  // Finish line
   if (c.x >= FINISH_X && !g.finished) {
     g.finished = true;
     g.objectives.find(o => o.id === 'finish').done = true;

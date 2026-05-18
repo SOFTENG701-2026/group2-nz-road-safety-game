@@ -45,7 +45,7 @@ function Header({ accent }) {
         ))}
       </div>
       <span style={{ fontSize: 8, letterSpacing: 2, color: 'rgba(255,255,255,0.55)', fontWeight: 600 }}>
-        RADIO · DISPATCH
+        RADIO - DISPATCH
       </span>
       <div style={{ flex: 1 }} />
       <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontVariantNumeric: 'tabular-nums' }}>CH 04</span>

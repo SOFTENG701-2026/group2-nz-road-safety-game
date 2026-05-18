@@ -147,7 +147,7 @@ function Coords() {
       color: 'rgba(255,255,255,0.45)', fontSize: 8,
       fontVariantNumeric: 'tabular-nums', letterSpacing: 0.5,
     }}>
-      36°47'S · 174°45'E
+      36 47 S - 174 45 E
     </div>
   );
 }

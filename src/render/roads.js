@@ -3,7 +3,7 @@
 import { W, H, ROAD_W, MAIN_Y, SIDE_X, SCHOOL_ZONE, PED_X, START_X, FINISH_X } from '../engine/constants.js';
 
 export function drawRoads(ctx) {
-  // ── Asphalt
+  // Asphalt
   ctx.fillStyle = '#3a3a3e';
   ctx.fillRect(0, MAIN_Y - ROAD_W / 2, W, ROAD_W);                                 // main
   ctx.fillRect(SIDE_X - ROAD_W / 2, MAIN_Y - ROAD_W / 2, ROAD_W, H - MAIN_Y + ROAD_W / 2); // side
@@ -15,7 +15,7 @@ export function drawRoads(ctx) {
   ctx.fillRect(SIDE_X - ROAD_W / 2 - 3, MAIN_Y - ROAD_W / 2, 3, H - MAIN_Y + ROAD_W / 2);
   ctx.fillRect(SIDE_X + ROAD_W / 2,     MAIN_Y - ROAD_W / 2, 3, H - MAIN_Y + ROAD_W / 2);
 
-  // ── School zone overlay (warm tint on asphalt)
+  // School zone overlay (warm tint on asphalt)
   ctx.fillStyle = 'rgba(255, 200, 80, 0.18)';
   ctx.fillRect(SCHOOL_ZONE.x1, MAIN_Y - ROAD_W / 2, SCHOOL_ZONE.x2 - SCHOOL_ZONE.x1, ROAD_W);
 
@@ -30,7 +30,7 @@ export function drawRoads(ctx) {
   }
   ctx.stroke();
 
-  // ── Center yellow line (dashed except near intersection)
+  // Center yellow line (dashed except near intersection)
   ctx.strokeStyle = '#f6c945';
   ctx.lineWidth   = 3;
   drawDashed(ctx, 0,            MAIN_Y, SIDE_X - 80, MAIN_Y, [22, 16]);
@@ -38,13 +38,13 @@ export function drawRoads(ctx) {
   drawDashed(ctx, SIDE_X + 80,  MAIN_Y, W,           MAIN_Y, [22, 16]);
   drawDashed(ctx, SIDE_X,       MAIN_Y + 80, SIDE_X, H,      [18, 14]);
 
-  // ── Pedestrian crossing (zebra)
+  // Pedestrian crossing (zebra)
   ctx.fillStyle = '#fff';
   for (let i = 0; i < 6; i++) {
     ctx.fillRect(PED_X - 22 + i * 8, MAIN_Y - ROAD_W / 2 + 6, 5, ROAD_W - 12);
   }
 
-  // ── Give-way triangle painted on side road
+  // Give-way triangle painted on side road
   ctx.fillStyle = '#fff';
   ctx.beginPath();
   ctx.moveTo(SIDE_X - 18, MAIN_Y + ROAD_W / 2 + 8);
@@ -53,7 +53,7 @@ export function drawRoads(ctx) {
   ctx.closePath();
   ctx.fill();
 
-  // ── Finish line (checkered)
+  // Finish line (checkered)
   for (let i = 0; i < 8; i++) {
     for (let j = 0; j < 2; j++) {
       ctx.fillStyle = (i + j) % 2 ? '#fff' : '#000';
@@ -61,7 +61,7 @@ export function drawRoads(ctx) {
     }
   }
 
-  // ── Start line
+  // Start line
   ctx.fillStyle = '#fff';
   ctx.fillRect(START_X - 30, MAIN_Y - ROAD_W / 2, 4, ROAD_W);
 }

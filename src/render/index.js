@@ -1,4 +1,4 @@
-// Composite world draw — called once per frame from useGame.js.
+// Composite world draw, called once per frame from useGame.js.
 import { drawPasture }    from './pasture.js';
 import { drawScenery }    from './scenery.js';
 import { drawRoads }      from './roads.js';
@@ -17,7 +17,7 @@ export function drawWorld(ctx, g, camera) {
 
   if (g.ped.state !== 'done') drawPedestrian(ctx, g.ped);
 
-  // NPC car heading. `waiting` and `going` face north (-π/2);
+  // NPC car heading. `waiting` and `going` face north (-PI/2);
   // `turning` eases toward east.
   const npAngle =
     g.npc.state === 'turning'

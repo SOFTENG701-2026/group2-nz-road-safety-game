@@ -1,77 +1,74 @@
 # Architecture
 
-This is a one-page primer on how the code fits together. Read this once before making big changes.
+This is a one-page primer on how the code fits together. Read this before making larger changes.
 
-## Three layers
+## Three Layers
 
-```
-                ┌────────────────────────┐
-                │  HUD (React)            │  src/hud/
-                │  reads game state,       │
-                │  draws overlays          │
-                └────────────┬───────────┘
-                             │
-                ┌────────────▼───────────┐
-                │  Engine (plain JS)      │  src/engine/
-                │  owns the game object,   │
-                │  ticks it every frame    │
-                └────────────┬───────────┘
-                             │
-                ┌────────────▼───────────┐
-                │  Render (canvas)        │  src/render/
-                │  pure ctx-takers         │
-                │  no state, no React      │
-                └────────────────────────┘
+```text
+HUD (React)          src/hud/
+  reads game state
+  draws overlays
+
+Engine (plain JS)    src/engine/
+  owns the game object
+  ticks it every frame
+
+Render (canvas)      src/render/
+  pure context drawing functions
+  no React state
 ```
 
-- The **engine** is the source of truth. The game state is a single mutable object created by `createGame()` in `engine/state.js`. Every frame, `tick(g, dt)` mutates it.
-- The **render layer** is a tree of pure functions: `drawWorld(ctx, g, camera)` paints the scene from `g` and the camera offset. Render functions never read or write React state.
-- The **HUD layer** is React components that read `g` and render overlays. They never mutate the game.
+The engine is the source of truth. The game state is a single mutable object created by `createGame()` in `engine/state.js`. Every frame, `tick(g, dt)` mutates it.
 
-## The frame loop
+The render layer is a tree of drawing functions. `drawWorld(ctx, g, camera)` paints the scene from `g` and the camera offset. Render functions should not read or write React state.
 
-Lives in `src/engine/useGame.js`. Each `requestAnimationFrame`:
+The HUD layer is React components that read `g` and render overlays. They should not mutate the game.
 
-1. Compute `dt` (clamped to 50ms to survive tab-switch stalls).
-2. `tick(g, dt)` mutates the game state.
-3. Move the camera toward the car with smoothing.
-4. `drawWorld(ctx, g, camera)` paints the canvas.
-5. Every 6 frames, call `force()` to re-render the HUD. We don't re-render on *every* frame because the HUD doesn't need 60fps — 10fps is plenty for readouts.
+## Frame Loop
 
-## Game state shape
+The frame loop lives in `src/engine/useGame.js`. Each `requestAnimationFrame`:
 
-See `createGame()` in `engine/state.js`. The important slices:
+1. Computes `dt`, clamped to 50 ms to survive tab-switch stalls.
+2. Calls `tick(g, dt)` to update the game state.
+3. Moves the camera toward the car with smoothing.
+4. Calls `drawWorld(ctx, g, camera)` to paint the canvas.
+5. Calls `force()` every 6 frames so the HUD updates at roughly 10 fps.
+
+## Game State Shape
+
+See `createGame()` in `engine/state.js`. The important slices are:
 
 - `car`: `{ x, y, angle, speed }`
-- `keys`: input state, set from `keydown/keyup` listeners
-- `npc`, `ped`: positions + state machines
-- `flags`: one-shot booleans so events fire once (`schoolWarned`, `pedHit`, …)
+- `keys`: input state set by `keydown` and `keyup` listeners
+- `npc`, `ped`: positions and state machines
+- `flags`: one-shot booleans so events fire once
 - `score`, `demerits`
-- `coach`: `{ id, text, tone, shown }` — the current line on screen
+- `coach`: `{ id, text, tone, shown }`
 - `objectives`: array of `{ id, label, done, fail }`
-- `events`: ring buffer of recent +/- score events
+- `events`: ring buffer of recent score events
 
-## Adding a new objective
+## Adding A New Objective
 
 1. Add an entry to `objectives` in `engine/state.js`.
 2. In `engine/coach-events.js`, detect the condition and set `.done` or `.fail`.
 3. Optionally add a line in `engine/coach-lines.js` and call `setCoach(g, id)`.
 
-That's it. The HUD's `ObjectivesPanel` picks it up automatically.
+The HUD's `ObjectivesPanel` picks it up automatically.
 
-## Adding a new HUD panel
+## Adding A New HUD Panel
 
-1. Create `src/hud/MyPanel.jsx`. Take what it needs as props (don't reach into globals).
-2. Import + place it in `src/hud/MissionVariant.jsx`.
+1. Create `src/hud/MyPanel.jsx`.
+2. Pass in what it needs as props.
+3. Import and place it in `src/hud/MissionVariant.jsx`.
 
-If the panel needs a derived value (like the trail or radio log), put the derivation in a custom hook (`useTrail.js`, `useRadioLog.js` are existing patterns).
+If the panel needs a derived value, put the derivation in a custom hook. `useTrail.js` and `useRadioLog.js` are existing examples.
 
-## Adding a new level
+## Adding A New Level
 
-Right now the level is hard-coded in `engine/constants.js` + `engine/scenery.js` + `engine/signs-data.js`. To make levels swappable:
+Right now the level is hard-coded in `engine/constants.js`, `engine/scenery.js`, and `engine/signs-data.js`. To make levels swappable:
 
 1. Move those constants into a `levels/level-01.js` module.
 2. Have `createGame()` take a `level` argument.
-3. Render functions take constants from `game.level` instead of importing them.
+3. Have render functions read level data from `game.level` instead of importing constants directly.
 
-(Not implemented yet — open as a feature request issue if you want it.)
+This is not implemented yet.

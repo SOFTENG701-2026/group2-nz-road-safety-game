@@ -1,6 +1,6 @@
-// Small row of <kbd> chips, e.g.  [↑][↓][←][→][Space]
+// Small row of <kbd> chips, e.g. [Up][Down][Left][Right][Space].
 
-export default function KeyHint({ keys = ['↑', '↓', '←', '→', 'Space'], style }) {
+export default function KeyHint({ keys = ['Up', 'Down', 'Left', 'Right', 'Space'], style }) {
   return (
     <div style={{ display: 'flex', gap: 4, ...style }}>
       {keys.map((k, i) => (

@@ -1,5 +1,5 @@
 // Render the SCENERY array: pastures, sheep, school building, houses,
-// bushes, ferns. Each branch is independent — easy to extend.
+// bushes, ferns. Each branch is independent and easy to extend.
 import { SCENERY } from '../engine/scenery.js';
 
 export function drawScenery(ctx) {

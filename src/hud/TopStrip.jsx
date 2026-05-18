@@ -20,9 +20,9 @@ export default function TopStrip({ score, onReset }) {
         }}>M01</div>
         <div>
           <div style={{ fontSize: 9, letterSpacing: 2.5, color: '#7ec8ff', fontWeight: 600, opacity: 0.85 }}>
-            MISSION 01 · NORTH SHORE
+            MISSION 01 - NORTH SHORE
           </div>
-          <div style={{ fontSize: 15, fontWeight: 700, marginTop: 1, letterSpacing: -0.2 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, marginTop: 1, letterSpacing: 0 }}>
             The School Run
           </div>
         </div>
@@ -41,7 +41,7 @@ export default function TopStrip({ score, onReset }) {
           cursor: 'pointer',
           fontFamily: 'inherit',
           fontWeight: 500,
-        }}>↻ Retry</button>
+        }}>Retry</button>
       </div>
     </div>
   );
