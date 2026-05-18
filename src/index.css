@@ -1,0 +1,32 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #0a0d12;
+  font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  min-height: 100vh;
+  color: #fff;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.game-frame {
+  width: 720px;
+  height: 500px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(126, 200, 255, 0.15);
+}
+
+kbd {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}

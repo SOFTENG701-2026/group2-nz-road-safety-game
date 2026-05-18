@@ -1,0 +1,16 @@
+/* Shared @keyframes used by HUD panels. */
+
+@keyframes mmWave {
+  0%, 100% { transform: scaleY(0.4); }
+  50%      { transform: scaleY(1.4); }
+}
+
+@keyframes mmLimitPulse {
+  0%, 100% { box-shadow: 0 0 0 0   rgba(245, 184, 29, 0.6); }
+  50%      { box-shadow: 0 0 0 6px rgba(245, 184, 29, 0);   }
+}
+
+@keyframes mmPulse {
+  0%, 100% { opacity: 1;   }
+  50%      { opacity: 0.3; }
+}
