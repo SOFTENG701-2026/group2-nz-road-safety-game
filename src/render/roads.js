@@ -41,7 +41,7 @@ export function drawRoads(ctx) {
   // ── Pedestrian crossing (zebra)
   ctx.fillStyle = '#fff';
   for (let i = 0; i < 6; i++) {
-    ctx.fillRect(PED_X - 22 + i * 8, MAIN_Y - ROAD_W / 2 + 6, 5, ROAD_W - 12);
+    ctx.fillRect(PED_X - 30, MAIN_Y - ROAD_W / 2 + 12 + i * 16, 60, 8);
   }
 
   // ── Give-way triangle painted on side road
