@@ -2,8 +2,14 @@
 import { START_X, FINISH_X } from '../engine/constants.js';
 import { MISSION_HAZARDS } from '../engine/hazards.js';
 
-export default function ProgressBar({ carX }) {
-  const progress = clamp01((carX - START_X) / (FINISH_X - START_X));
+export default function ProgressBar({ carX, level }) {
+  const startX = level?.startX ?? START_X;
+  const finishX = level?.finishX ?? FINISH_X;
+  const hazards = level?.hazards ?? [];
+  const progress = clamp01((carX - startX) / (finishX - startX));
+
+  const destName = level?.id === 'urban' ? 'TAKAPUNA' : 'WELLINGTON';
+  const startName = level?.id === 'urban' ? 'MILFORD' : 'AUCKLAND';
 
   return (
     <div style={{ position: 'absolute', top: 56, left: 16, right: 210 }}>
@@ -12,9 +18,9 @@ export default function ProgressBar({ carX }) {
         fontSize: 8, letterSpacing: 1.5, color: 'rgba(255,255,255,0.45)',
         marginBottom: 4,
       }}>
-        <span>START · MILFORD</span>
+        <span>START · {startName}</span>
         <span style={{ fontVariantNumeric: 'tabular-nums' }}>{Math.round(progress * 100)}%</span>
-        <span>DEST · TAKAPUNA</span>
+        <span>DEST · {destName}</span>
       </div>
 
       <div style={{
@@ -31,8 +37,8 @@ export default function ProgressBar({ carX }) {
         }} />
 
         {/* Hazard ticks */}
-        {MISSION_HAZARDS.map((h) => {
-          const p = (h.x - START_X) / (FINISH_X - START_X);
+        {hazards.map((h) => {
+          const p = (h.x - startX) / (finishX - startX);
           return (
             <div
               key={h.id}

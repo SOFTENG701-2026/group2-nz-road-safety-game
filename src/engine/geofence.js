@@ -1,20 +1,24 @@
 // "Where is the car?" queries — all derived from constants.js.
 import { W, ROAD_W, MAIN_Y, SIDE_X, SCHOOL_ZONE } from './constants.js';
 
-export function inSchoolZone(x) {
-  return x >= SCHOOL_ZONE.x1 && x <= SCHOOL_ZONE.x2;
+export function inSchoolZone(x, schoolZone) {
+  if (!schoolZone) return false;
+  return x >= schoolZone.x1 && x <= schoolZone.x2;
 }
 
-export function onRoadMain(x, y) {
-  return x >= 0 && x <= W && Math.abs(y - MAIN_Y) <= ROAD_W / 2;
+export function onRoadMain(x, y, worldW = W) {
+  return x >= 0 && x <= worldW && Math.abs(y - MAIN_Y) <= ROAD_W / 2;
 }
 
-export function onRoadSide(x, y) {
-  return y >= MAIN_Y && Math.abs(x - SIDE_X) <= ROAD_W / 2;
+export function onRoadSide(x, y, sideX) {
+  if (!sideX) return false;
+  return y >= MAIN_Y && Math.abs(x - sideX) <= ROAD_W / 2;
 }
 
-export function onRoad(x, y) {
-  return onRoadMain(x, y) || onRoadSide(x, y);
+export function onRoad(x, y, g) {
+  const worldW = g?.level?.worldWidth ?? W;
+  const sideX = g?.level?.config?.sideX;
+  return onRoadMain(x, y, worldW) || onRoadSide(x, y, sideX);
 }
 
 // In NZ we keep LEFT. Heading east on main road → left lane is above centerline.

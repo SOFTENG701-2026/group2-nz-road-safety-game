@@ -2,8 +2,9 @@
 // so you can add new sign types without touching the others.
 import { SIGNS } from '../engine/signs-data.js';
 
-export function drawSigns(ctx) {
-  for (const s of SIGNS) drawSign(ctx, s);
+export function drawSigns(ctx, g) {
+  const signs = g.level?.signs ?? [];
+  for (const s of signs) drawSign(ctx, s);
 }
 
 function drawSign(ctx, s) {
@@ -14,10 +15,52 @@ function drawSign(ctx, s) {
     case 'school-30-start':
     case 'school-30-end':     drawSchool30(ctx);            break;
     case 'speed-50':          drawSpeedLimit(ctx, 50);      break;
+    case 'speed-100':         drawSpeedLimit(ctx, 100);     break;
     case 'kiwi-crossing':     drawKiwiCrossing(ctx);        break;
     case 'give-way':          drawGiveWay(ctx);             break;
+    case 'one-lane-bridge':   drawOneLaneBridge(ctx);       break;
+    case 'railway-crossing':  drawRailwayCrossing(ctx);     break;
   }
   ctx.restore();
+}
+
+function drawRailwayCrossing(ctx) {
+  ctx.save();
+  ctx.rotate(Math.PI / 4);
+  ctx.fillStyle = '#f5b81d';
+  ctx.fillRect(-15, -15, 30, 30);
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(-15, -15, 30, 30);
+  ctx.restore();
+  
+  // Locomotive symbol
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(-10, 0, 20, 8); // body
+  ctx.fillRect(-8, -6, 8, 6);  // cabin
+  ctx.fillRect(4, -8, 4, 8);   // chimney
+  ctx.beginPath(); ctx.arc(-6, 8, 3, 0, Math.PI * 2); ctx.fill(); // wheel
+  ctx.beginPath(); ctx.arc(6, 8, 3, 0, Math.PI * 2); ctx.fill();  // wheel
+  drawPole(ctx);
+}
+
+function drawOneLaneBridge(ctx) {
+  ctx.save();
+  ctx.rotate(Math.PI / 4);
+  ctx.fillStyle = '#f5b81d';
+  ctx.fillRect(-15, -15, 30, 30);
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(-15, -15, 30, 30);
+  ctx.restore();
+  
+  // Bridge symbol (two vertical bars narrowing)
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(-8, -10, 3, 20);
+  ctx.fillRect(5, -10, 3, 20);
+  ctx.fillRect(-8, -10, 16, 3);
+  ctx.fillRect(-8, 7, 16, 3);
+  drawPole(ctx);
 }
 
 function drawKeepLeft(ctx) {

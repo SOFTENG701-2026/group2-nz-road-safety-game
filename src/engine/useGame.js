@@ -6,9 +6,9 @@ import { createGame } from './state.js';
 import { tick } from './tick.js';
 import { drawWorld } from '../render/index.js';
 
-export function useGame({ width, height, active, difficulty = 'normal' }) {
+export function useGame({ width, height, active, level, difficulty = 'normal' }) {
   const canvasRef = useRef(null);
-  const gameRef   = useRef(createGame());
+  const gameRef   = useRef(createGame(level));
   const [, force] = useReducer((x) => x + 1, 0);
 
   // ── Keyboard ─────────────────────────────────────────────────
@@ -23,7 +23,7 @@ export function useGame({ width, height, active, difficulty = 'normal' }) {
       if (e.key === 'ArrowLeft'  || e.key === 'a') { g.keys.left  = down; e.preventDefault(); }
       if (e.key === 'ArrowRight' || e.key === 'd') { g.keys.right = down; e.preventDefault(); }
       if (e.key === ' ')                            { g.keys.brake = down; e.preventDefault(); }
-      if (down && e.key === 'r') { gameRef.current = createGame(); force(); }
+      if (down && e.key === 'r') { gameRef.current = createGame(level); force(); }
     };
     const dn = (e) => onKey(e, true);
     const up = (e) => onKey(e, false);
@@ -33,7 +33,7 @@ export function useGame({ width, height, active, difficulty = 'normal' }) {
       window.removeEventListener('keydown', dn);
       window.removeEventListener('keyup',   up);
     };
-  }, [active]);
+  }, [active, level]);
 
   // ── Render + tick loop ───────────────────────────────────────
   useEffect(() => {
@@ -53,6 +53,8 @@ export function useGame({ width, height, active, difficulty = 'normal' }) {
     let cam = { x: 0, y: 0 };
     let frameCount = 0;
 
+    const worldW = level?.worldWidth ?? W;
+
     const loop = (now) => {
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
@@ -66,7 +68,7 @@ export function useGame({ width, height, active, difficulty = 'normal' }) {
       const k  = Math.min(1, dt * 4);
       cam.x += (tx - cam.x) * k;
       cam.y += (ty - cam.y) * k;
-      cam.x = Math.max(0, Math.min(W - width,  cam.x));
+      cam.x = Math.max(0, Math.min(worldW - width,  cam.x));
       cam.y = Math.max(0, Math.min(H - height, cam.y));
 
       ctx.clearRect(0, 0, width, height);
@@ -81,12 +83,12 @@ export function useGame({ width, height, active, difficulty = 'normal' }) {
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [width, height, active, difficulty]);
+  }, [width, height, active, level, difficulty]);
 
   const reset = useCallback(() => {
-    gameRef.current = createGame();
+    gameRef.current = createGame(level);
     force();
-  }, []);
+  }, [level]);
 
   return { canvasRef, game: gameRef.current, reset };
 }

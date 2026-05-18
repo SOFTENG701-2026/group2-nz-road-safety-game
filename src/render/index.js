@@ -12,8 +12,8 @@ export function drawWorld(ctx, g, camera) {
 
   drawPasture(ctx);
   drawScenery(ctx);
-  drawRoads(ctx);
-  drawSigns(ctx);
+  drawRoads(ctx, g);
+  drawSigns(ctx, g);
 
   if (g.ped.state !== 'done') drawPedestrian(ctx, g.ped);
 

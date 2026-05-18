@@ -18,15 +18,18 @@ import KeyHint        from './KeyHint.jsx';
 export default function MissionVariant({
   active,
   onActivate,
+  onBack,
+  level,
   difficulty = 'easy',
   hudDensity = 'full', // reserved for future low-density mode
   width  = 720,
   height = 500,
 }) {
-  const { canvasRef, game, reset } = useGame({ width, height, active, difficulty });
+  const { canvasRef, game, reset } = useGame({ width, height, active, level, difficulty });
 
   // Next hazard ahead on the x-axis (or null past the finish)
-  const upcoming = MISSION_HAZARDS.find((h) => h.x > game.car.x + 20) || null;
+  const hazards = game.level?.hazards ?? [];
+  const upcoming = hazards.find((h) => h.x > game.car.x + 20) || null;
   const distance = upcoming ? Math.round((upcoming.x - game.car.x) * 0.45) : 0;
 
   return (
@@ -44,11 +47,11 @@ export default function MissionVariant({
         background: 'radial-gradient(120% 80% at 50% 50%, transparent 55%, rgba(0,0,0,0.45) 100%)',
       }} />
 
-      <TopStrip       score={game.score} onReset={reset} />
-      <ProgressBar    carX={game.car.x} />
+      <TopStrip       score={game.score} onReset={reset} onBack={onBack} level={game.level} />
+      <ProgressBar    carX={game.car.x} level={game.level} />
       <NextHazardStrip hazard={!game.finished ? upcoming : null} distance={distance} />
       <Minimap        game={game} />
-      <SpeedPanel     car={game.car} />
+      <SpeedPanel     car={game.car} level={game.level} />
       <ObjectivesPanel
         objectives={game.objectives}
         upcoming={upcoming}

@@ -23,7 +23,7 @@ export default function FinishCard({ game, onReset }) {
           MISSION COMPLETE
         </div>
         <div style={{ fontSize: 22, fontWeight: 800, color: '#1a1a1a', marginTop: 4 }}>
-          The School Run
+          {game.level?.missionName || 'Mission Complete'}
         </div>
 
         <div style={{ display: 'flex', gap: 4, marginTop: 12 }}>

@@ -10,10 +10,19 @@ const MM_W = 180;
 const MM_H = 96;
 
 export default function Minimap({ game }) {
+  const level = game.level;
+  const worldW = level?.worldWidth ?? W;
   const trail = useTrail(game);
-  const sx = MM_W / W;
+  const sx = MM_W / worldW;
   const sy = MM_H / H;
   const headingDeg = (game.car.angle * 180) / Math.PI;
+
+  const schoolZone = level?.config?.schoolZone;
+  const pedX = level?.config?.pedX;
+  const sideX = level?.config?.sideX;
+  const bridgeX = level?.config?.bridgeX;
+  const startX = level?.startX ?? START_X;
+  const finishX = level?.finishX ?? FINISH_X;
 
   return (
     <div style={{
@@ -34,25 +43,38 @@ export default function Minimap({ game }) {
 
           {/* Roads */}
           <rect x="0" y={MAIN_Y * sy - 5} width={MM_W} height="10" fill="#2a3548" />
-          <rect x={SIDE_X * sx - 4} y={MAIN_Y * sy} width="8" height={MM_H - MAIN_Y * sy} fill="#2a3548" />
+          {sideX && (
+            <rect x={sideX * sx - 4} y={MAIN_Y * sy} width="8" height={MM_H - MAIN_Y * sy} fill="#2a3548" />
+          )}
           <line x1="0" y1={MAIN_Y * sy} x2={MM_W} y2={MAIN_Y * sy}
                 stroke="#f6c945" strokeWidth="0.6" strokeDasharray="3 3" opacity="0.6" />
 
           {/* School zone overlay */}
-          <rect
-            x={SCHOOL_ZONE.x1 * sx}
-            y={MAIN_Y * sy - 5}
-            width={(SCHOOL_ZONE.x2 - SCHOOL_ZONE.x1) * sx}
-            height="10"
-            fill="rgba(245,184,29,0.35)"
-          />
+          {schoolZone && (
+            <rect
+              x={schoolZone.x1 * sx}
+              y={MAIN_Y * sy - 5}
+              width={(schoolZone.x2 - schoolZone.x1) * sx}
+              height="10"
+              fill="rgba(245,184,29,0.35)"
+            />
+          )}
           {/* Ped crossing */}
-          <rect x={PED_X * sx - 1.5} y={MAIN_Y * sy - 5} width="3" height="10" fill="#fff" />
+          {pedX && (
+            <rect x={pedX * sx - 1.5} y={MAIN_Y * sy - 5} width="3" height="10" fill="#fff" />
+          )}
           {/* Give-way diamond */}
-          <polygon
-            points={`${SIDE_X*sx},${MAIN_Y*sy+12} ${SIDE_X*sx+5},${MAIN_Y*sy+17} ${SIDE_X*sx},${MAIN_Y*sy+22} ${SIDE_X*sx-5},${MAIN_Y*sy+17}`}
-            fill="rgba(126,200,255,0.5)" stroke="#7ec8ff" strokeWidth="0.7"
-          />
+          {sideX && (
+            <polygon
+              points={`${sideX*sx},${MAIN_Y*sy+12} ${sideX*sx+5},${MAIN_Y*sy+17} ${sideX*sx},${MAIN_Y*sy+22} ${sideX*sx-5},${MAIN_Y*sy+17}`}
+              fill="rgba(126,200,255,0.5)" stroke="#7ec8ff" strokeWidth="0.7"
+            />
+          )}
+
+          {/* Bridge */}
+          {bridgeX && (
+            <rect x={bridgeX * sx - 10} y={MAIN_Y * sy - 6} width="20" height="12" fill="#5a5a5e" stroke="#fff" strokeWidth="0.5" />
+          )}
 
           {/* Trail */}
           {trail.length > 1 && (
@@ -64,9 +86,9 @@ export default function Minimap({ game }) {
           )}
 
           {/* Waypoints */}
-          <circle cx={START_X  * sx} cy={MAIN_Y * sy} r="3" fill="#7ce69a" stroke="#0a0d12" strokeWidth="1" />
-          <circle cx={FINISH_X * sx} cy={MAIN_Y * sy} r="4" fill="#f5b81d" stroke="#0a0d12" strokeWidth="1" />
-          <text x={FINISH_X * sx} y={MAIN_Y * sy - 7} fill="#f5b81d"
+          <circle cx={startX  * sx} cy={MAIN_Y * sy} r="3" fill="#7ce69a" stroke="#0a0d12" strokeWidth="1" />
+          <circle cx={finishX * sx} cy={MAIN_Y * sy} r="4" fill="#f5b81d" stroke="#0a0d12" strokeWidth="1" />
+          <text x={finishX * sx} y={MAIN_Y * sy - 7} fill="#f5b81d"
                 fontSize="7" fontWeight="700" textAnchor="middle" letterSpacing="0.5">
             END
           </text>

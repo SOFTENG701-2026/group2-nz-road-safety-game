@@ -24,7 +24,7 @@ export function stepPhysics(g, dt, difficulty = 'normal') {
   if (g.keys.brake) c.speed = decay(c.speed, BRAKE_FORCE * dt);
 
   // Off-road drag
-  if (!onRoad(c.x, c.y)) c.speed = decay(c.speed, OFF_ROAD * dt);
+  if (!onRoad(c.x, c.y, g)) c.speed = decay(c.speed, OFF_ROAD * dt);
 
   c.speed = Math.max(-60, Math.min(maxSpeed, c.speed));
 
@@ -39,7 +39,8 @@ export function stepPhysics(g, dt, difficulty = 'normal') {
   c.y += Math.sin(c.angle) * c.speed * dt;
 
   // Bounds
-  c.x = Math.max(20, Math.min(W - 20, c.x));
+  const worldW = g.level?.worldWidth ?? W;
+  c.x = Math.max(20, Math.min(worldW - 20, c.x));
   c.y = Math.max(20, Math.min(H - 20, c.y));
 }
 

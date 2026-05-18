@@ -2,12 +2,14 @@
 import { START_X, MAIN_Y, LANE, SIDE_X } from './constants.js';
 import { COACH_LINES } from './coach-lines.js';
 
-export function createGame() {
+export function createGame(level) {
+  const startX = level?.startX ?? START_X;
   return {
-    car:   { x: START_X, y: MAIN_Y - LANE / 2, angle: 0, speed: 0 },
+    level: level || null,
+    car:   { x: startX, y: MAIN_Y - LANE / 2, angle: 0, speed: 0 },
     keys:  { up: false, down: false, left: false, right: false, brake: false },
-    npc:   { x: SIDE_X, y: 980, speed: 0, state: 'waiting' },
-    ped:   { x: 980,    y: MAIN_Y - 90, t: 0, state: 'waiting', dir: 1 },
+    npc:   { x: level?.config?.sideX ?? SIDE_X, y: 980, speed: 0, state: 'waiting' },
+    ped:   { x: level?.config?.pedX ?? 980,    y: MAIN_Y - 90, t: 0, state: 'waiting', dir: 1 },
     t: 0,
     started: false,
     finished: false,
@@ -19,7 +21,7 @@ export function createGame() {
       pedAlerted: false, gaveWay: false, pedPassed: false, finishedOnce: false,
     },
     events: [],
-    objectives: [
+    objectives: level?.objectives.map(o => ({ ...o })) ?? [
       { id: 'left',    label: 'Keep to the left lane',       done: false, fail: false },
       { id: 'school',  label: 'Slow to 30 in school zone',   done: false, fail: false },
       { id: 'ped',     label: 'Stop for pedestrians',        done: false, fail: false },
