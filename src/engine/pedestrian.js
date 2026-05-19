@@ -8,24 +8,29 @@ export function stepPedestrian(g, dt) {
   const c = g.car;
   if (p.state === 'done') return;
 
-  p.t += dt;
-
   if (p.state === 'waiting') {
     const dx = c.x - p.x;
     const playerApproaching = dx < 0 && dx > -180;
 
     if (!playerApproaching) {
-      if (p.t > 3) { p.state = 'crossing'; p.t = 0; }
-    } else if (Math.abs(c.speed) < 8 && dx > -110) {
+      // Player is far away — keep timer at zero so it only counts while player is near
+      p.t = 0;
+    } else if (Math.abs(c.speed) < 8 && dx > -110 && dx < -30) {
+      // Player stopped 30–110 px BEFORE the crossing (not on it) → success
       p.state = 'crossing';
       p.t = 0;
       if (!g.flags.pedAlerted) {
-        logEvent(g, 'Stopped for pedestrian', +5);
+        logEvent(g, 'Stopped for pedestrian', +8);
         g.flags.pedAlerted = true;
         const obj = g.objectives.find(o => o.id === 'ped');
         if (obj) obj.done = true;
         setCoach(g, 'pedGood');
       }
+    } else {
+      // Player is approaching but hasn't stopped — count up; cross after 5 s
+      // so hit-detection can fire if the player drives through at speed.
+      p.t += dt;
+      if (p.t > 5) { p.state = 'crossing'; p.t = 0; }
     }
   } else if (p.state === 'crossing') {
     p.y += p.dir * 32 * dt;

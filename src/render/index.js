@@ -21,13 +21,9 @@ export function drawWorld(ctx, g, camera) {
 
   if (g.ped.state !== 'done') drawPedestrian(ctx, g.ped);
 
-  // NPC only exists when the level has a sideX intersection
+  // NPC drives south through the intersection — only on levels with sideX
   if (g.level?.config?.sideX && g.npc.state !== 'done') {
-    const sideX  = g.level.config.sideX;
-    const npAngle = g.npc.state === 'turning'
-      ? -Math.PI / 4 + Math.min(0, (g.npc.x - sideX) / 200)
-      : -Math.PI / 2;
-    drawCar(ctx, g.npc.x, g.npc.y, npAngle, '#3b6ec8');
+    drawCar(ctx, g.npc.x, g.npc.y, Math.PI / 2, '#3b6ec8');
   }
 
   drawCar(ctx, g.car.x, g.car.y, g.car.angle, '#d83a2e');

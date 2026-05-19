@@ -53,7 +53,7 @@ function Speed({ kmh, over }) {
         borderRadius: 1,
       }}>
         <div style={{
-          width: `${Math.min(100, (kmh / 80) * 100)}%`,
+          width: `${Math.min(100, (kmh / 150) * 100)}%`,
           height: '100%', borderRadius: 1,
           background: over ? '#ff7a6a' : '#7ce69a',
           transition: 'width 0.15s',

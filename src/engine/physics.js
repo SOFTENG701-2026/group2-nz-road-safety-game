@@ -3,13 +3,13 @@
 import { W, H } from './constants.js';
 import { onRoad } from './geofence.js';
 
-const ACCEL       = 220; // forward accel,           px/s²
-const REVERSE     = 120; // reverse accel,           px/s²
-const FRICTION    =  80; // engine-off drag,         px/s²
-const BRAKE_FORCE = 320; // active brake decel,      px/s²
-const OFF_ROAD    = 260; // extra drag on grass,     px/s²
+const ACCEL       =  30; // forward accel,           px/s²
+const REVERSE     =  18; // reverse accel,           px/s²
+const FRICTION    =  22; // engine-off drag,         px/s²
+const BRAKE_FORCE = 140; // active brake decel,      px/s²
+const OFF_ROAD    = 130; // extra drag on grass,     px/s²
 
-const MAX_SPEED = { easy: 110, normal: 140, hard: 170 };
+const MAX_SPEED = { easy: 270, normal: 310, hard: 360 };
 
 export function stepPhysics(g, dt, difficulty = 'normal') {
   const c = g.car;

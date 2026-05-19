@@ -19,13 +19,15 @@ export const COACH_LINES = {
   iceGood:          { text: 'Well done — careful speed on the icy mountain road.',                                    tone: 'good' },
 
   // ── Pedestrian crossing ───────────────────────────────────────────────────
-  pedAhead:         { text: 'Pedestrian crossing ahead — be ready to stop.',                                          tone: 'warn' },
-  pedHit:           { text: "You didn't stop! Pedestrians have right of way on a zebra crossing.",                   tone: 'bad'  },
-  pedGood:          { text: 'Good — you let them cross safely.',                                                      tone: 'good' },
+  pedAhead:         { text: 'Pedestrian crossing ahead — stop before the line.',                                       tone: 'warn' },
+  pedHit:           { text: "You hit a pedestrian! They have right of way on a zebra crossing.",                     tone: 'bad'  },
+  pedMissed:        { text: 'You must stop before the crossing, not on it or past it.',                              tone: 'bad'  },
+  pedGood:          { text: 'Good — you stopped before the line and let them cross.',                                 tone: 'good' },
 
   // ── Give-way intersection ─────────────────────────────────────────────────
-  giveWayAhead:     { text: 'Give Way ahead — watch the side road.',                                                  tone: 'warn' },
-  giveWayGood:      { text: 'Right of way managed well.',                                                             tone: 'good' },
+  giveWayAhead:     { text: 'Give Way ahead — slow down and check the side road.',                                     tone: 'warn' },
+  giveWayFail:      { text: "You didn't give way! Slow to ≤25 km/h and check before crossing.",                      tone: 'bad'  },
+  giveWayGood:      { text: 'Good — you slowed and gave way correctly.',                                              tone: 'good' },
 
   // ── Roundabout ────────────────────────────────────────────────────────────
   roundaboutAhead:  { text: 'Roundabout ahead — slow down, go clockwise, give way to vehicles on your right.',       tone: 'warn' },

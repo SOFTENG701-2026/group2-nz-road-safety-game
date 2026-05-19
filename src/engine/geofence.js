@@ -12,7 +12,7 @@ export function onRoadMain(x, y, worldW = W) {
 
 export function onRoadSide(x, y, sideX) {
   if (!sideX) return false;
-  return y >= MAIN_Y && Math.abs(x - sideX) <= ROAD_W / 2;
+  return Math.abs(x - sideX) <= ROAD_W / 2;  // full height: north + south
 }
 
 export function onRoad(x, y, g) {

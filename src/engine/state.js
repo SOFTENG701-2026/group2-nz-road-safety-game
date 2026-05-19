@@ -8,7 +8,7 @@ export function createGame(level) {
     level: level || null,
     car:   { x: startX, y: MAIN_Y - LANE / 2, angle: 0, speed: 0 },
     keys:  { up: false, down: false, left: false, right: false, brake: false },
-    npc:   { x: level?.config?.sideX ?? SIDE_X, y: 980, speed: 0, state: level?.config?.sideX ? 'waiting' : 'done' },
+    npc:   { x: level?.config?.sideX ?? SIDE_X, y: MAIN_Y - 200, speed: 0, state: level?.config?.sideX ? 'waiting' : 'done' },
     ped:   { x: level?.config?.pedX  ?? 980,   y: MAIN_Y - 90, t: 0, state: level?.config?.pedX  ? 'waiting' : 'done', dir: 1 },
     t: 0,
     started: false,

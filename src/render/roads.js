@@ -14,9 +14,10 @@ export function drawRoads(ctx, g) {
 
   // ── Asphalt
   ctx.fillStyle = '#3a3a3e';
-  ctx.fillRect(0, MAIN_Y - ROAD_W / 2, worldW, ROAD_W);                                 // main
+  ctx.fillRect(0, MAIN_Y - ROAD_W / 2, worldW, ROAD_W);  // main road
   if (sideX) {
-    ctx.fillRect(sideX - ROAD_W / 2, MAIN_Y - ROAD_W / 2, ROAD_W, H - MAIN_Y + ROAD_W / 2); // side
+    // Full crossroads: side road extends both north (y=0) and south (y=H)
+    ctx.fillRect(sideX - ROAD_W / 2, 0, ROAD_W, H);
   }
 
   // Shoulders
@@ -24,8 +25,8 @@ export function drawRoads(ctx, g) {
   ctx.fillRect(0, MAIN_Y - ROAD_W / 2 - 3, worldW, 3);
   ctx.fillRect(0, MAIN_Y + ROAD_W / 2,     worldW, 3);
   if (sideX) {
-    ctx.fillRect(sideX - ROAD_W / 2 - 3, MAIN_Y - ROAD_W / 2, 3, H - MAIN_Y + ROAD_W / 2);
-    ctx.fillRect(sideX + ROAD_W / 2,     MAIN_Y - ROAD_W / 2, 3, H - MAIN_Y + ROAD_W / 2);
+    ctx.fillRect(sideX - ROAD_W / 2 - 3, 0, 3, H);
+    ctx.fillRect(sideX + ROAD_W / 2,     0, 3, H);
   }
 
   // ── School zone / icy road overlay
@@ -70,7 +71,8 @@ export function drawRoads(ctx, g) {
     drawDashed(ctx, 0,            MAIN_Y, sideX - 80, MAIN_Y, [22, 16]);
     drawSolid (ctx, sideX - 80,  MAIN_Y, sideX + 80, MAIN_Y);
     drawDashed(ctx, sideX + 80,  MAIN_Y, worldW,     MAIN_Y, [22, 16]);
-    drawDashed(ctx, sideX,       MAIN_Y + 80, sideX, H,      [18, 14]);
+    drawDashed(ctx, sideX, 0,            sideX, MAIN_Y - 80, [18, 14]);  // north arm
+    drawDashed(ctx, sideX, MAIN_Y + 80, sideX, H,           [18, 14]);  // south arm
   } else {
     drawDashed(ctx, 0,            MAIN_Y, worldW,     MAIN_Y, [22, 16]);
   }
@@ -161,15 +163,32 @@ export function drawRoads(ctx, g) {
     ctx.beginPath(); ctx.moveTo(railX + 40, MAIN_Y + 30); ctx.lineTo(railX + 100, MAIN_Y - 30); ctx.stroke();
   }
 
-  // ── Give-way triangle
+  // ── Give-way marking — white line + triangles across the player's lane
+  // Player drives east in the north lane (y < MAIN_Y); marking faces west.
   if (sideX) {
-    ctx.fillStyle = '#fff';
+    const laneTop = MAIN_Y - ROAD_W / 2 + 2;
+    const laneMid = MAIN_Y - 2;
+    // Stop line across the north lane
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([7, 5]);
     ctx.beginPath();
-    ctx.moveTo(sideX - 18, MAIN_Y + ROAD_W / 2 + 8);
-    ctx.lineTo(sideX + 18, MAIN_Y + ROAD_W / 2 + 8);
-    ctx.lineTo(sideX,      MAIN_Y + ROAD_W / 2 + 36);
-    ctx.closePath();
-    ctx.fill();
+    ctx.moveTo(sideX - 8, laneTop);
+    ctx.lineTo(sideX - 8, laneMid);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // Two triangles pointing left (west) = toward approaching player
+    ctx.fillStyle = '#fff';
+    const laneH = laneMid - laneTop;
+    for (let i = 0; i < 2; i++) {
+      const cy = laneTop + laneH * (0.28 + i * 0.44);
+      ctx.beginPath();
+      ctx.moveTo(sideX - 4, cy - 7);   // top-right
+      ctx.lineTo(sideX - 4, cy + 7);   // bottom-right
+      ctx.lineTo(sideX - 20, cy);       // apex pointing west
+      ctx.closePath();
+      ctx.fill();
+    }
   }
 
   // ── Finish line (checkered)

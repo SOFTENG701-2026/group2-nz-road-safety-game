@@ -60,7 +60,15 @@ export function stepCoachEvents(g, dt) {
     if (c.x > pedX + 60 && !g.flags.pedPassed) {
       g.flags.pedPassed = true;
       const obj = g.objectives.find(o => o.id === 'ped');
-      if (obj && !g.flags.pedHit && !g.flags.pedAlerted) obj.done = true;
+      if (obj && !g.flags.pedHit) {
+        if (!g.flags.pedAlerted) {
+          // Drove past without stopping before the crossing
+          obj.fail = true;
+          logEvent(g, 'Did not stop before crossing', -20);
+          g.demerits += 15;
+          setCoach(g, 'pedMissed');
+        }
+      }
     }
   }
 
@@ -70,12 +78,24 @@ export function stepCoachEvents(g, dt) {
       setCoach(g, 'giveWayAhead');
       g.flags.gaveWayWarned = true;
     }
-    if (c.x > sideX + 60 && !g.flags.gaveWay) {
-      g.flags.gaveWay = true;
-      logEvent(g, 'Held right of way', +5);
+    // Approach zone: player must slow to ≤25 km/h BEFORE entering intersection
+    if (c.x > sideX - 150 && c.x < sideX - 65) {
+      if (pxToKmh(Math.abs(c.speed)) <= 25) g.flags.giveWayStopped = true;
+    }
+    // Evaluate at the intersection boundary — too late to slow down after this
+    if (c.x >= sideX - 65 && !g.flags.giveWayChecked) {
+      g.flags.giveWayChecked = true;
       const obj = g.objectives.find(o => o.id === 'giveway');
-      if (obj) obj.done = true;
-      setCoach(g, 'giveWayGood');
+      if (g.flags.giveWayStopped) {
+        logEvent(g, 'Gave way correctly', +10);
+        if (obj) obj.done = true;
+        setCoach(g, 'giveWayGood');
+      } else {
+        logEvent(g, 'Failed to give way', -20);
+        g.demerits += 15;
+        if (obj) obj.fail = true;
+        setCoach(g, 'giveWayFail');
+      }
     }
   }
 
