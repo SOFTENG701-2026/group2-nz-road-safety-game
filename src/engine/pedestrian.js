@@ -34,7 +34,6 @@ export function stepPedestrian(g, dt) {
     }
   } else if (p.state === 'crossing') {
     p.y += p.dir * 32 * dt;
-    if (p.y > MAIN_Y + 40) p.dir   = -1;
-    if (p.y < MAIN_Y - 90) p.state = 'done';
+    if (p.y > MAIN_Y + 60) p.state = 'done';  // crossed south side — done, no return
   }
 }

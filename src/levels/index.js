@@ -246,8 +246,9 @@ export const LEVELS = [
     signs: [
       { kind: 'keep-left',        x: 80,   y: 660 },
       { kind: 'speed-100',        x: 300,  y: 490 },
-      { kind: 'school-30-start',  x: 560,  y: 490 },
-      { kind: 'school-30-end',    x: 870,  y: 630 },
+      { kind: 'slippery-surface', x: 510,  y: 490 },
+      { kind: 'speed-30',         x: 565,  y: 490 },
+      { kind: 'speed-100',        x: 910,  y: 630 },
       { kind: 'one-lane-bridge',  x: 970,  y: 490 },
       { kind: 'railway-crossing', x: 1420, y: 490 },
       { kind: 'give-way',         x: 1770, y: 490 },

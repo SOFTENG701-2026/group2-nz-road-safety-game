@@ -85,31 +85,78 @@ export function drawRoads(ctx, g) {
     }
   }
 
-  // ── Bridge (Level 2)
+  // ── One-lane bridge: river/gorge + deck + guardrails
   if (bridgeX) {
-    // Bridge structure
-    ctx.fillStyle = '#4a4a4e';
-    ctx.fillRect(bridgeX - 100, MAIN_Y - ROAD_W / 2 - 10, 200, ROAD_W + 20);
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(bridgeX - 100, MAIN_Y - ROAD_W / 2 - 10, 200, ROAD_W + 20);
-    
-    // Road narrowing (one lane only)
-    ctx.fillStyle = '#3a3a3e';
-    ctx.fillRect(bridgeX - 100, MAIN_Y - ROAD_W / 4, 200, ROAD_W / 2);
-    
-    // Narrowing markings (white diagonal lines on the blocked parts)
-    ctx.fillStyle = '#fff';
-    ctx.globalAlpha = 0.6;
-    for (let x = bridgeX - 100; x < bridgeX + 100; x += 20) {
-      // Top narrowing
-      ctx.beginPath(); ctx.moveTo(x, MAIN_Y - ROAD_W / 2); ctx.lineTo(x + 10, MAIN_Y - ROAD_W / 2);
-      ctx.lineTo(x + 20, MAIN_Y - ROAD_W / 4); ctx.lineTo(x + 10, MAIN_Y - ROAD_W / 4); ctx.closePath(); ctx.fill();
-      // Bottom narrowing
-      ctx.beginPath(); ctx.moveTo(x, MAIN_Y + ROAD_W / 2); ctx.lineTo(x + 10, MAIN_Y + ROAD_W / 2);
-      ctx.lineTo(x + 20, MAIN_Y + ROAD_W / 4); ctx.lineTo(x + 10, MAIN_Y + ROAD_W / 4); ctx.closePath(); ctx.fill();
+    const BL      = bridgeX - 100;
+    const BR      = bridgeX + 100;
+    const BLen    = 200;
+    const deckTop = MAIN_Y - ROAD_W / 4;
+    const deckBot = MAIN_Y + ROAD_W / 4;
+    const deckH   = ROAD_W / 2;
+    const roadTop = MAIN_Y - ROAD_W / 2;
+    const roadBot = MAIN_Y + ROAD_W / 2;
+
+    // ① River / gorge beneath — fills the full road-width slot
+    ctx.fillStyle = '#4e8ab5';
+    ctx.fillRect(BL, roadTop, BLen, roadBot - roadTop);
+
+    // Water ripples (semi-circles, two rows)
+    ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+    ctx.lineWidth = 1;
+    for (let rx = BL + 14; rx < BR; rx += 26) {
+      ctx.beginPath(); ctx.arc(rx,      MAIN_Y - ROAD_W * 0.34, 6, Math.PI, 0); ctx.stroke();
+      ctx.beginPath(); ctx.arc(rx + 13, MAIN_Y + ROAD_W * 0.34, 5, Math.PI, 0); ctx.stroke();
     }
-    ctx.globalAlpha = 1.0;
+
+    // ② Steel girder frame (slightly wider/taller than the deck)
+    ctx.fillStyle = '#6a6a74';
+    ctx.fillRect(BL, deckTop - 5, BLen, deckH + 10);
+
+    // ③ Bridge deck — single-lane concrete surface
+    ctx.fillStyle = '#3c3c44';
+    ctx.fillRect(BL, deckTop, BLen, deckH);
+
+    // ④ Guardrails along the deck edges
+    ctx.strokeStyle = '#b8bcc4';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(BL, deckTop); ctx.lineTo(BR, deckTop); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(BL, deckBot); ctx.lineTo(BR, deckBot); ctx.stroke();
+
+    // Rail posts (vertical stubs, evenly spaced)
+    ctx.lineWidth = 1.5;
+    for (let px = BL; px <= BR; px += 14) {
+      ctx.beginPath(); ctx.moveTo(px, deckTop - 5); ctx.lineTo(px, deckTop); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(px, deckBot);     ctx.lineTo(px, deckBot + 5); ctx.stroke();
+    }
+
+    // ⑤ Yellow dashed centre line on the bridge deck
+    ctx.strokeStyle = '#f6c945';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([14, 10]);
+    ctx.beginPath(); ctx.moveTo(BL, MAIN_Y); ctx.lineTo(BR, MAIN_Y); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // ⑥ Approach chevrons on road surface — warn of lane narrowing
+    // Painted on the asphalt BEFORE and AFTER the bridge, each side
+    ctx.fillStyle = 'rgba(245,184,29,0.60)';
+    for (let side = -1; side <= 1; side += 2) {
+      const inner = MAIN_Y + side * ROAD_W / 4;
+      const outer = MAIN_Y + side * (ROAD_W / 2 - 4);
+      for (let i = 0; i < 4; i++) {
+        // Left approach: chevrons pointing RIGHT (toward bridge)
+        const lx = BL - 18 - i * 20;
+        ctx.beginPath();
+        ctx.moveTo(lx - 8, outer); ctx.lineTo(lx + 8, outer);
+        ctx.lineTo(lx + 2, inner); ctx.lineTo(lx - 14, inner);
+        ctx.closePath(); ctx.fill();
+        // Right approach: chevrons pointing LEFT (back to full road)
+        const rx = BR + 18 + i * 20;
+        ctx.beginPath();
+        ctx.moveTo(rx + 8, outer); ctx.lineTo(rx - 8, outer);
+        ctx.lineTo(rx - 2, inner); ctx.lineTo(rx + 14, inner);
+        ctx.closePath(); ctx.fill();
+      }
+    }
   }
 
   // ── Roundabout (Level 3)

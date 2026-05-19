@@ -11,8 +11,10 @@ function drawSign(ctx, s) {
     case 'keep-left':         drawKeepLeft(ctx);            break;
     case 'school-30-start':
     case 'school-30-end':     drawSchool30(ctx);            break;
-    case 'speed-50':          drawSpeedLimit(ctx, 50);      break;
-    case 'speed-100':         drawSpeedLimit(ctx, 100);     break;
+    case 'speed-30':          drawSpeedLimit(ctx, 30);       break;
+    case 'speed-50':          drawSpeedLimit(ctx, 50);       break;
+    case 'speed-100':         drawSpeedLimit(ctx, 100);      break;
+    case 'slippery-surface':  drawSlipperySurface(ctx);      break;
     case 'kiwi-crossing':     drawKiwiCrossing(ctx);        break;
     case 'give-way':          drawGiveWay(ctx);             break;
     case 'one-lane-bridge':   drawOneLaneBridge(ctx);       break;
@@ -139,6 +141,46 @@ function drawGiveWay(ctx) {
   ctx.fillText('WAY',  0,  2);
   ctx.fillStyle = '#888';
   ctx.fillRect(-1, 14, 2, 12);
+}
+
+// NZ W073 — Slippery Surface warning sign.
+// Yellow diamond with a car fishtailing + wavy lines (wet/icy road).
+function drawSlipperySurface(ctx) {
+  // Yellow diamond background
+  ctx.save();
+  ctx.rotate(Math.PI / 4);
+  ctx.fillStyle = '#f5b81d';
+  ctx.fillRect(-15, -15, 30, 30);
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(-15, -15, 30, 30);
+  ctx.restore();
+
+  // Car body — slightly rotated to suggest fishtailing / skidding
+  ctx.save();
+  ctx.rotate(0.22);
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(-8, -5, 16, 6);    // car body
+  ctx.fillRect(-5, -10, 10, 6);   // roof
+  ctx.beginPath(); ctx.arc(-5, 1, 1.8, 0, Math.PI * 2); ctx.fill(); // front wheel
+  ctx.beginPath(); ctx.arc( 5, 1, 1.8, 0, Math.PI * 2); ctx.fill(); // rear wheel
+  ctx.restore();
+
+  // Wavy lines below the car = slippery/icy surface
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(-9, 6);
+  ctx.bezierCurveTo(-5, 3.5, -2, 8.5, 0, 6);
+  ctx.bezierCurveTo( 2, 3.5,  5, 8.5, 9, 6);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(-9, 10);
+  ctx.bezierCurveTo(-5, 7.5, -2, 12.5, 0, 10);
+  ctx.bezierCurveTo( 2, 7.5,  5, 12.5, 9, 10);
+  ctx.stroke();
+
+  drawPole(ctx);
 }
 
 function drawPole(ctx, top = 16) {
