@@ -8,26 +8,17 @@ export function createGame(level) {
     level: level || null,
     car:   { x: startX, y: MAIN_Y - LANE / 2, angle: 0, speed: 0 },
     keys:  { up: false, down: false, left: false, right: false, brake: false },
-    npc:   { x: level?.config?.sideX ?? SIDE_X, y: 980, speed: 0, state: 'waiting' },
-    ped:   { x: level?.config?.pedX ?? 980,    y: MAIN_Y - 90, t: 0, state: 'waiting', dir: 1 },
+    npc:   { x: level?.config?.sideX ?? SIDE_X, y: 980, speed: 0, state: level?.config?.sideX ? 'waiting' : 'done' },
+    ped:   { x: level?.config?.pedX  ?? 980,   y: MAIN_Y - 90, t: 0, state: level?.config?.pedX  ? 'waiting' : 'done', dir: 1 },
     t: 0,
     started: false,
     finished: false,
     score: 100,
     demerits: 0,
     coach: { id: 'start', shown: 0, text: COACH_LINES.start.text, tone: 'info' },
-    flags: {
-      schoolEntered: false, schoolViolated: false,
-      pedAlerted: false, gaveWay: false, pedPassed: false, finishedOnce: false,
-    },
+    flags: {},
     events: [],
-    objectives: level?.objectives.map(o => ({ ...o })) ?? [
-      { id: 'left',    label: 'Keep to the left lane',       done: false, fail: false },
-      { id: 'school',  label: 'Slow to 30 in school zone',   done: false, fail: false },
-      { id: 'ped',     label: 'Stop for pedestrians',        done: false, fail: false },
-      { id: 'giveway', label: 'Give way at intersection',    done: false, fail: false },
-      { id: 'finish',  label: 'Reach the finish line',       done: false, fail: false },
-    ],
+    objectives: (level?.objectives ?? []).map(o => ({ ...o, done: false, fail: false })),
   };
 }
 

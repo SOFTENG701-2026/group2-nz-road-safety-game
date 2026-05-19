@@ -3,10 +3,16 @@ import { inSchoolZone } from '../engine/geofence.js';
 import { pxToKmh } from '../engine/units.js';
 
 export default function SpeedPanel({ car, level }) {
-  const kmh   = pxToKmh(Math.abs(car.speed));
-  const schoolLimit = level?.config?.schoolZone ? (inSchoolZone(car.x, level.config.schoolZone) ? 30 : null) : null;
-  const defaultLimit = level?.id === 'urban' ? 50 : 100;
-  const limit = schoolLimit ?? defaultLimit;
+  const kmh    = pxToKmh(Math.abs(car.speed));
+  const cfg    = level?.config ?? {};
+
+  const inSchool  = cfg.schoolZone ? inSchoolZone(car.x, cfg.schoolZone) : false;
+  const inGravel  = cfg.gravelZone
+    ? (car.x >= cfg.gravelZone.x1 && car.x <= cfg.gravelZone.x2)
+    : false;
+
+  const zoneLimit = inSchool ? 30 : inGravel ? 60 : null;
+  const limit     = zoneLimit ?? (level?.speedLimit ?? 50);
   const over  = kmh > limit;
 
   return (

@@ -1,6 +1,6 @@
 // Mission-complete modal: stars, score breakdown, drive-again button.
 
-export default function FinishCard({ game, onReset }) {
+export default function FinishCard({ game, onReset, onBack }) {
   const stars = game.score >= 85 ? 3 : game.score >= 60 ? 2 : game.score > 0 ? 1 : 0;
 
   return (
@@ -44,16 +44,28 @@ export default function FinishCard({ game, onReset }) {
           <Row label="Demerit points" value={game.demerits} />
         </div>
 
-        <button onClick={onReset} style={{
-          marginTop: 14, width: '100%',
-          padding: '10px',
-          background: '#d83a2e', color: '#fff',
-          border: 'none', borderRadius: 8,
-          fontWeight: 700, fontSize: 13,
-          cursor: 'pointer',
-        }}>
-          Drive again
-        </button>
+        <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+          {onBack && (
+            <button onClick={onBack} style={{
+              flex: 1, padding: '10px',
+              background: 'transparent', color: '#555',
+              border: '1px solid #ddd', borderRadius: 8,
+              fontWeight: 600, fontSize: 12,
+              cursor: 'pointer',
+            }}>
+              ← Menu
+            </button>
+          )}
+          <button onClick={onReset} style={{
+            flex: 2, padding: '10px',
+            background: '#d83a2e', color: '#fff',
+            border: 'none', borderRadius: 8,
+            fontWeight: 700, fontSize: 13,
+            cursor: 'pointer',
+          }}>
+            Drive again
+          </button>
+        </div>
       </div>
     </div>
   );

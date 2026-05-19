@@ -23,10 +23,10 @@ export default function TopStrip({ score, onReset, onBack, level }) {
         >←</button>
         <div>
           <div style={{ fontSize: 9, letterSpacing: 2.5, color: '#7ec8ff', fontWeight: 600, opacity: 0.85 }}>
-            {level?.name.toUpperCase() || 'MISSION'}
+            {level?.name?.toUpperCase() ?? 'MISSION'}
           </div>
           <div style={{ fontSize: 15, fontWeight: 700, marginTop: 1, letterSpacing: -0.2 }}>
-            {level?.id === 'urban' ? 'The School Run' : 'Cross Country'}
+            {level?.missionName ?? 'Drive Safely'}
           </div>
         </div>
       </div>

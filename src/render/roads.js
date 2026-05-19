@@ -28,13 +28,12 @@ export function drawRoads(ctx, g) {
     ctx.fillRect(sideX + ROAD_W / 2,     MAIN_Y - ROAD_W / 2, 3, H - MAIN_Y + ROAD_W / 2);
   }
 
-  // ── School zone overlay
+  // ── School zone / icy road overlay
   if (schoolZone) {
-    ctx.fillStyle = 'rgba(255, 200, 80, 0.18)';
+    const isMountain = level?.id === 'mountain';
+    ctx.fillStyle = isMountain ? 'rgba(180,220,255,0.28)' : 'rgba(255,200,80,0.18)';
     ctx.fillRect(schoolZone.x1, MAIN_Y - ROAD_W / 2, schoolZone.x2 - schoolZone.x1, ROAD_W);
-
-    // School zone zig-zag warning markings
-    ctx.strokeStyle = '#f5d56a';
+    ctx.strokeStyle = isMountain ? '#a8d8ff' : '#f5d56a';
     ctx.lineWidth   = 3;
     ctx.beginPath();
     for (let x = schoolZone.x1 - 60; x < schoolZone.x2 + 60; x += 18) {
@@ -43,6 +42,25 @@ export function drawRoads(ctx, g) {
       ctx.lineTo(x + 18, MAIN_Y - ROAD_W / 2 + 6);
     }
     ctx.stroke();
+  }
+
+  // ── Gravel / unsealed road overlay
+  const gravelZone = level?.config?.gravelZone;
+  if (gravelZone) {
+    const gw = gravelZone.x2 - gravelZone.x1;
+    ctx.fillStyle = 'rgba(160,120,60,0.55)';
+    ctx.fillRect(gravelZone.x1, MAIN_Y - ROAD_W / 2, gw, ROAD_W);
+    // Gravel texture dots
+    for (let xi = 0; xi < gw; xi += 14) {
+      for (let yi = 0; yi < ROAD_W; yi += 11) {
+        const dotX = gravelZone.x1 + xi + ((xi * 7 + yi * 3) % 8);
+        const dotY = MAIN_Y - ROAD_W / 2 + yi + ((xi * 3 + yi * 7) % 6);
+        ctx.fillStyle = `rgba(${140 + (xi * 3) % 40},${100 + (yi * 2) % 30},${50 + (xi + yi) % 20},0.45)`;
+        ctx.beginPath();
+        ctx.arc(dotX, dotY, 1.5 + (xi % 3) * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
   }
 
   // ── Center yellow line

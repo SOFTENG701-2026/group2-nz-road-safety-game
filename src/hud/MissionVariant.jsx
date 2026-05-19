@@ -2,7 +2,6 @@
 // Each panel is its own file — see ../hud/*.jsx.
 import './animations.css';
 import { useGame } from '../engine/useGame.js';
-import { MISSION_HAZARDS } from '../engine/hazards.js';
 
 import TopStrip       from './TopStrip.jsx';
 import ProgressBar    from './ProgressBar.jsx';
@@ -70,7 +69,7 @@ export default function MissionVariant({
         </span>
       </div>
 
-      {game.finished && <FinishCard game={game} onReset={reset} />}
+      {game.finished && <FinishCard game={game} onReset={reset} onBack={onBack} />}
       <ClickOverlay active={active} onActivate={onActivate} />
     </div>
   );

@@ -1,7 +1,4 @@
-// Draws every road sign in SIGNS. Each kind is a small standalone helper
-// so you can add new sign types without touching the others.
-import { SIGNS } from '../engine/signs-data.js';
-
+// Draws road signs defined in g.level.signs. Each kind is a small standalone helper.
 export function drawSigns(ctx, g) {
   const signs = g.level?.signs ?? [];
   for (const s of signs) drawSign(ctx, s);

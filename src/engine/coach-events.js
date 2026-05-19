@@ -1,34 +1,31 @@
 // Position-driven coach prompts, scoring, and objective progress.
 // Each branch is independent and only fires once (guarded by g.flags).
-import { SCHOOL_ZONE, PED_X, SIDE_X, FINISH_X } from './constants.js';
+import { FINISH_X } from './constants.js';
 import { inSchoolZone, onRoadMain, onLeftSide } from './geofence.js';
 import { pxToKmh } from './units.js';
 import { setCoach, logEvent } from './state.js';
 
 export function stepCoachEvents(g, dt) {
-  const c = g.car;
-  const level = g.level;
+  const c      = g.car;
+  const level  = g.level;
   const config = level?.config ?? {};
-  const schoolZone = config.schoolZone;
-  const pedX = config.pedX;
-  const sideX = config.sideX;
-  const bridgeX = config.bridgeX;
+  const { schoolZone, pedX, sideX, bridgeX, railX, roundaboutX, gravelZone } = config;
   const finishX = level?.finishX ?? FINISH_X;
+  const isMountain = level?.id === 'mountain';
 
-  // ── School zone ──────────────────────────────────────────────
+  // ── School zone / icy road (same mechanic, different coaching) ───────────
   if (schoolZone) {
     if (c.x > schoolZone.x1 - 140 && c.x < schoolZone.x1 - 60 && !g.flags.schoolWarned) {
-      setCoach(g, 'schoolEnter');
+      setCoach(g, isMountain ? 'iceEnter' : 'schoolEnter');
       g.flags.schoolWarned = true;
     }
     if (inSchoolZone(c.x, schoolZone) && !g.flags.schoolEntered) g.flags.schoolEntered = true;
     if (inSchoolZone(c.x, schoolZone)) {
-      const kmh = pxToKmh(Math.abs(c.speed));
-      if (kmh > 30 && !g.flags.schoolViolated) {
+      if (pxToKmh(Math.abs(c.speed)) > 30 && !g.flags.schoolViolated) {
         g.flags.schoolViolated = true;
-        logEvent(g, 'School zone speeding', -25);
+        logEvent(g, isMountain ? 'Icy road speeding' : 'School zone speeding', -25);
         g.demerits += 20;
-        setCoach(g, 'schoolSpeeding');
+        setCoach(g, isMountain ? 'iceViolated' : 'schoolSpeeding');
         const obj = g.objectives.find(o => o.id === 'school');
         if (obj) obj.fail = true;
       }
@@ -36,24 +33,22 @@ export function stepCoachEvents(g, dt) {
     if (c.x > schoolZone.x2 + 30 && g.flags.schoolEntered && !g.flags.schoolDone) {
       g.flags.schoolDone = true;
       if (!g.flags.schoolViolated) {
-        logEvent(g, 'School zone — speed kept', +10);
+        logEvent(g, isMountain ? 'Icy road — safe speed' : 'School zone — speed kept', +10);
         const obj = g.objectives.find(o => o.id === 'school');
         if (obj) obj.done = true;
-        setCoach(g, 'schoolGood');
+        setCoach(g, isMountain ? 'iceGood' : 'schoolGood');
       }
     }
   }
 
-  // ── Pedestrian crossing ──────────────────────────────────────
+  // ── Pedestrian crossing ──────────────────────────────────────────────────
   if (pedX) {
     if (c.x > pedX - 200 && c.x < pedX - 80 && !g.flags.pedNoticed) {
       setCoach(g, 'pedAhead');
       g.flags.pedNoticed = true;
     }
     const p = g.ped;
-    const pedDx = c.x - p.x;
-    const pedDy = c.y - p.y;
-    if (p.state === 'crossing' && Math.hypot(pedDx, pedDy) < 22
+    if (p.state === 'crossing' && Math.hypot(c.x - p.x, c.y - p.y) < 22
         && Math.abs(c.speed) > 20 && !g.flags.pedHit) {
       g.flags.pedHit = true;
       logEvent(g, 'Hit pedestrian', -50);
@@ -65,13 +60,11 @@ export function stepCoachEvents(g, dt) {
     if (c.x > pedX + 60 && !g.flags.pedPassed) {
       g.flags.pedPassed = true;
       const obj = g.objectives.find(o => o.id === 'ped');
-      if (obj && !g.flags.pedHit && !g.flags.pedAlerted) {
-        obj.done = true;
-      }
+      if (obj && !g.flags.pedHit && !g.flags.pedAlerted) obj.done = true;
     }
   }
 
-  // ── Give-way intersection ────────────────────────────────────
+  // ── Give-way intersection ────────────────────────────────────────────────
   if (sideX) {
     if (c.x > sideX - 280 && c.x < sideX - 100 && !g.flags.gaveWayWarned) {
       setCoach(g, 'giveWayAhead');
@@ -86,29 +79,122 @@ export function stepCoachEvents(g, dt) {
     }
   }
 
-  // ── One-lane bridge (Level 2) ────────────────────────────────
+  // ── Roundabout ───────────────────────────────────────────────────────────
+  if (roundaboutX) {
+    if (c.x > roundaboutX - 260 && c.x < roundaboutX - 110 && !g.flags.roundaboutWarned) {
+      setCoach(g, 'roundaboutAhead');
+      g.flags.roundaboutWarned = true;
+    }
+    if (Math.abs(c.x - roundaboutX) < 90) {
+      if (pxToKmh(Math.abs(c.speed)) > 40 && !g.flags.roundaboutFast) {
+        g.flags.roundaboutFast = true;
+        logEvent(g, 'Too fast at roundabout', -15);
+        g.demerits += 10;
+        setCoach(g, 'roundaboutFast');
+        const obj = g.objectives.find(o => o.id === 'roundabout');
+        if (obj) obj.fail = true;
+      }
+    }
+    if (c.x > roundaboutX + 100 && !g.flags.roundaboutDone) {
+      g.flags.roundaboutDone = true;
+      if (!g.flags.roundaboutFast) {
+        logEvent(g, 'Roundabout navigated', +10);
+        const obj = g.objectives.find(o => o.id === 'roundabout');
+        if (obj) obj.done = true;
+        setCoach(g, 'roundaboutGood');
+      }
+    }
+  }
+
+  // ── Gravel / unsealed road ────────────────────────────────────────────────
+  if (gravelZone) {
+    if (c.x > gravelZone.x1 - 160 && c.x < gravelZone.x1 - 50 && !g.flags.gravelWarned) {
+      setCoach(g, 'gravelAhead');
+      g.flags.gravelWarned = true;
+    }
+    if (c.x >= gravelZone.x1 && c.x <= gravelZone.x2 && !g.flags.gravelEntered)
+      g.flags.gravelEntered = true;
+    if (c.x >= gravelZone.x1 && c.x <= gravelZone.x2) {
+      if (pxToKmh(Math.abs(c.speed)) > 60 && !g.flags.gravelViolated) {
+        g.flags.gravelViolated = true;
+        logEvent(g, 'Gravel road speeding', -15);
+        g.demerits += 10;
+        setCoach(g, 'gravelFast');
+        const obj = g.objectives.find(o => o.id === 'gravel');
+        if (obj) obj.fail = true;
+      }
+    }
+    if (c.x > gravelZone.x2 + 30 && g.flags.gravelEntered && !g.flags.gravelDone) {
+      g.flags.gravelDone = true;
+      if (!g.flags.gravelViolated) {
+        logEvent(g, 'Gravel road — safe speed', +10);
+        const obj = g.objectives.find(o => o.id === 'gravel');
+        if (obj) obj.done = true;
+        setCoach(g, 'gravelGood');
+      }
+    }
+  }
+
+  // ── Railway crossing ─────────────────────────────────────────────────────
+  if (railX) {
+    if (c.x > railX - 280 && c.x < railX - 120 && !g.flags.railWarned) {
+      setCoach(g, 'railAhead');
+      g.flags.railWarned = true;
+    }
+    // Player must slow to near-stop before the crossing line
+    if (c.x > railX - 130 && c.x < railX && !g.flags.railChecked) {
+      if (Math.abs(c.speed) < 12) g.flags.railStopped = true;
+    }
+    if (c.x >= railX && c.x < railX + 80 && !g.flags.railChecked) {
+      g.flags.railChecked = true;
+      if (!g.flags.railStopped) {
+        g.flags.railViolated = true;
+        logEvent(g, 'Ran railway crossing', -25);
+        g.demerits += 20;
+        setCoach(g, 'railViolation');
+        const obj = g.objectives.find(o => o.id === 'rail');
+        if (obj) obj.fail = true;
+      }
+    }
+    if (c.x > railX + 80 && g.flags.railChecked && !g.flags.railDone) {
+      g.flags.railDone = true;
+      if (!g.flags.railViolated) {
+        logEvent(g, 'Railway crossing — stopped safely', +10);
+        const obj = g.objectives.find(o => o.id === 'rail');
+        if (obj) obj.done = true;
+        setCoach(g, 'railStop');
+      }
+    }
+  }
+
+  // ── One-lane bridge ──────────────────────────────────────────────────────
   if (bridgeX) {
     if (c.x > bridgeX - 300 && c.x < bridgeX - 150 && !g.flags.bridgeWarned) {
-      setCoach(g, 'giveWayAhead'); // Reuse give way message for simplicity
+      setCoach(g, 'bridgeAhead');
       g.flags.bridgeWarned = true;
     }
     if (c.x > bridgeX - 110 && c.x < bridgeX + 110) {
-      const kmh = pxToKmh(Math.abs(c.speed));
-      if (kmh > 40 && !g.flags.bridgeViolated) {
+      if (pxToKmh(Math.abs(c.speed)) > 40 && !g.flags.bridgeViolated) {
         g.flags.bridgeViolated = true;
-        logEvent(g, 'Bridge speeding', -15);
+        logEvent(g, 'Bridge — too fast', -15);
+        g.demerits += 10;
+        setCoach(g, 'bridgeFast');
         const obj = g.objectives.find(o => o.id === 'bridge');
         if (obj) obj.fail = true;
       }
     }
     if (c.x > bridgeX + 120 && !g.flags.bridgeDone) {
       g.flags.bridgeDone = true;
-      const obj = g.objectives.find(o => o.id === 'bridge');
-      if (obj && !g.flags.bridgeViolated) obj.done = true;
+      if (!g.flags.bridgeViolated) {
+        logEvent(g, 'Bridge crossed safely', +10);
+        const obj = g.objectives.find(o => o.id === 'bridge');
+        if (obj) obj.done = true;
+        setCoach(g, 'bridgeGood');
+      }
     }
   }
 
-  // ── Wrong side of road ───────────────────────────────────────
+  // ── Wrong side of road ───────────────────────────────────────────────────
   if (onRoadMain(c.x, c.y) && Math.abs(c.speed) > 12 && !onLeftSide(c)) {
     g.flags.wrongSideTimer = (g.flags.wrongSideTimer || 0) + dt;
     if (g.flags.wrongSideTimer > 0.6 && !g.flags.wrongSideWarned) {
@@ -124,24 +210,19 @@ export function stepCoachEvents(g, dt) {
   }
   if (!g.flags.wrongSideWarned && c.x > finishX - 200) {
     const obj = g.objectives.find(o => o.id === 'left');
-    if (obj) obj.done = true;
+    if (obj && !obj.done) obj.done = true;
   }
 
-  // ── Speeding warning ─────────────────────────────────────────
-  const currentKmh = pxToKmh(Math.abs(c.speed));
-  const limit = (schoolZone && inSchoolZone(c.x, schoolZone)) ? 30 : (level?.id === 'rural' ? 100 : 50);
-  if (currentKmh > limit + 5 && !g.flags.generalSpeedWarned && !inSchoolZone(c.x, schoolZone)) {
+  // ── General speeding warning (outside school/gravel zones) ───────────────
+  const inSlow  = (schoolZone && inSchoolZone(c.x, schoolZone))
+               || (gravelZone && c.x >= gravelZone.x1 && c.x <= gravelZone.x2);
+  const roadLimit = level?.speedLimit ?? 50;
+  if (!inSlow && pxToKmh(Math.abs(c.speed)) > roadLimit + 5 && !g.flags.generalSpeedWarned) {
     setCoach(g, 'speeding');
     g.flags.generalSpeedWarned = true;
-    const obj = g.objectives.find(o => o.id === 'speed');
-    if (obj) obj.fail = true;
-  }
-  if (level?.id === 'rural' && c.x > finishX - 200 && !g.flags.generalSpeedWarned) {
-    const obj = g.objectives.find(o => o.id === 'speed');
-    if (obj) obj.done = true;
   }
 
-  // ── Finish line ──────────────────────────────────────────────
+  // ── Finish line ──────────────────────────────────────────────────────────
   if (c.x >= finishX && !g.finished) {
     g.finished = true;
     const obj = g.objectives.find(o => o.id === 'finish');
