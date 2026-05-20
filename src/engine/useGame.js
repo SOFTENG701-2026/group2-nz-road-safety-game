@@ -11,7 +11,7 @@ export function useGame({ width, height, active, level, difficulty = 'normal' })
   const gameRef   = useRef(createGame(level));
   const [, force] = useReducer((x) => x + 1, 0);
 
-  // ── Keyboard ─────────────────────────────────────────────────
+  // Keyboard
   // Only the "active" instance listens, so you can have multiple games
   // on a page without them all reacting at once.
   useEffect(() => {
@@ -35,7 +35,7 @@ export function useGame({ width, height, active, level, difficulty = 'normal' })
     };
   }, [active, level]);
 
-  // ── Render + tick loop ───────────────────────────────────────
+  // Render + tick loop
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -74,7 +74,7 @@ export function useGame({ width, height, active, level, difficulty = 'normal' })
       ctx.clearRect(0, 0, width, height);
       drawWorld(ctx, g, cam);
 
-      // Re-render React HUD ~10×/s — enough for live readouts, cheap enough
+      // Re-render React HUD about 10 times per second, which is enough
       // that we don't thrash on every animation frame.
       frameCount++;
       if (frameCount % 6 === 0) force();

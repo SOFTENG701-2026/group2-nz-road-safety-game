@@ -1,4 +1,4 @@
-// Bottom-right list of mission objectives with done/fail ticks +
+// Bottom-right list of mission objectives with done/fail indicators and
 // an embedded "NEXT AHEAD" callout.
 import NextHazardCallout from './NextHazardCallout.jsx';
 
@@ -66,7 +66,7 @@ function Checkbox({ o }) {
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontWeight: 800,
     }}>
-      {o.done ? '✓' : o.fail ? '✗' : ''}
+      {o.done ? 'Y' : o.fail ? 'X' : ''}
     </div>
   );
 }

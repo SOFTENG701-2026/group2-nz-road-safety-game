@@ -1,5 +1,5 @@
 // Top-level Mission HUD: owns the game hook and lays out every panel.
-// Each panel is its own file — see ../hud/*.jsx.
+// Each panel is its own file. See ../hud/*.jsx.
 import './animations.css';
 import { useGame } from '../engine/useGame.js';
 
@@ -65,7 +65,7 @@ export default function MissionVariant({
       }}>
         <KeyHint />
         <span style={{ fontSize: 8, letterSpacing: 1.5, color: 'rgba(255,255,255,0.35)' }}>
-          R · RESET
+          R - RESET
         </span>
       </div>
 

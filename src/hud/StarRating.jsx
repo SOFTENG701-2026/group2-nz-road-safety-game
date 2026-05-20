@@ -1,4 +1,4 @@
-// 0–3 gold stars based on score thresholds.
+// 0-3 gold stars based on score thresholds.
 
 export default function StarRating({ score }) {
   const stars = score >= 85 ? 3 : score >= 60 ? 2 : score > 0 ? 1 : 0;

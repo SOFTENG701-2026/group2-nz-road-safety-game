@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "NZ road safety driving game — top-down arcade with tactical HUD",
+  "description": "NZ road safety driving game - top-down arcade with tactical HUD",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

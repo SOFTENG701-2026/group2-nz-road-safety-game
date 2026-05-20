@@ -238,7 +238,7 @@ export function drawRoads(ctx, g) {
     }
   }
 
-  // ── Finish line (checkered)
+  // Finish line (checkered)
   for (let i = 0; i < 8; i++) {
     for (let j = 0; j < 2; j++) {
       ctx.fillStyle = (i + j) % 2 ? '#fff' : '#000';
@@ -246,7 +246,7 @@ export function drawRoads(ctx, g) {
     }
   }
 
-  // ── Start line
+  // Start line
   ctx.fillStyle = '#fff';
   ctx.fillRect(startX - 30, MAIN_Y - ROAD_W / 2, 4, ROAD_W);
 }

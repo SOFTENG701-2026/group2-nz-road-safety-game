@@ -1,4 +1,4 @@
-// "Where is the car?" queries — all derived from constants.js.
+// "Where is the car?" queries, all derived from constants.js.
 import { W, ROAD_W, MAIN_Y, SIDE_X, SCHOOL_ZONE } from './constants.js';
 
 export function inSchoolZone(x, schoolZone) {
@@ -21,9 +21,10 @@ export function onRoad(x, y, g) {
   return onRoadMain(x, y, worldW) || onRoadSide(x, y, sideX);
 }
 
-// In NZ we keep LEFT. Heading east on main road → left lane is above centerline.
+// In New Zealand we keep left. Heading east on the main road means the
+// left lane is above the centerline.
 export function onLeftSide(car) {
-  if (!onRoadMain(car.x, car.y)) return true; // don't penalise off-main
+  if (!onRoadMain(car.x, car.y)) return true; // Do not penalise off-main.
   const facingEast = Math.cos(car.angle) > 0;
   return facingEast ? car.y < MAIN_Y : car.y > MAIN_Y;
 }
