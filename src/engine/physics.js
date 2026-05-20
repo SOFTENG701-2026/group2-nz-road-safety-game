@@ -1,26 +1,37 @@
 // Car physics step: input, acceleration, steering, then position.
 // Difficulty only changes the top speed.
 import { W, H } from './constants.js';
-import { onRoad } from './geofence.js';
+import { onRoad, inSchoolZone } from './geofence.js';
 
-const ACCEL       = 220; // forward accel, px/s^2
-const REVERSE     = 120; // reverse accel, px/s^2
-const FRICTION    =  80; // engine-off drag, px/s^2
-const BRAKE_FORCE = 320; // active brake decel, px/s^2
-const OFF_ROAD    = 260; // extra drag on grass, px/s^2
+const ACCEL       =  30; // forward accel,           px/s²
+const REVERSE     =  18; // reverse accel,           px/s²
+const FRICTION    =  22; // engine-off drag,         px/s²
+const BRAKE_FORCE = 140; // active brake decel,      px/s²
+const OFF_ROAD    = 130; // extra drag on grass,     px/s²
 
-const MAX_SPEED = { easy: 110, normal: 140, hard: 170 };
+const MAX_SPEED = { easy: 270, normal: 310, hard: 360 };
 
 export function stepPhysics(g, dt, difficulty = 'normal') {
   const c = g.car;
   const maxSpeed = MAX_SPEED[difficulty] ?? MAX_SPEED.normal;
 
-  if (g.keys.up)        c.speed += ACCEL   * dt;
-  else if (g.keys.down) c.speed -= REVERSE * dt;
-  else                  c.speed = decay(c.speed, FRICTION * dt);
+  // Ice surface: Mountain Pass schoolZone acts as an icy road.
+  // Friction and braking are drastically reduced — the car slides.
+  const iceZone = g.level?.id === 'mountain' && g.level.config?.schoolZone;
+  const onIce   = iceZone && inSchoolZone(c.x, iceZone);
+  const friction   = onIce ? FRICTION    * 0.25 : FRICTION;
+  const brakeForce = onIce ? BRAKE_FORCE * 0.30 : BRAKE_FORCE;
 
-  if (g.keys.brake) c.speed = decay(c.speed, BRAKE_FORCE * dt);
-  if (!onRoad(c.x, c.y)) c.speed = decay(c.speed, OFF_ROAD * dt);
+  // Throttle / reverse / coast
+  if (g.keys.up)        c.speed += ACCEL * dt;
+  else if (g.keys.down) c.speed -= REVERSE * dt;
+  else                  c.speed = decay(c.speed, friction * dt);
+
+  // Brake
+  if (g.keys.brake) c.speed = decay(c.speed, brakeForce * dt);
+
+  // Off-road drag
+  if (!onRoad(c.x, c.y, g)) c.speed = decay(c.speed, OFF_ROAD * dt);
 
   c.speed = Math.max(-60, Math.min(maxSpeed, c.speed));
 
@@ -32,7 +43,9 @@ export function stepPhysics(g, dt, difficulty = 'normal') {
   c.x += Math.cos(c.angle) * c.speed * dt;
   c.y += Math.sin(c.angle) * c.speed * dt;
 
-  c.x = Math.max(20, Math.min(W - 20, c.x));
+  // Bounds
+  const worldW = g.level?.worldWidth ?? W;
+  c.x = Math.max(20, Math.min(worldW - 20, c.x));
   c.y = Math.max(20, Math.min(H - 20, c.y));
 }
 

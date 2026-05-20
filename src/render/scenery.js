@@ -1,15 +1,16 @@
-// Render the SCENERY array: pastures, sheep, school building, houses,
-// bushes, ferns. Each branch is independent and easy to extend.
-import { SCENERY } from '../engine/scenery.js';
+// Render level scenery: pastures, sheep, schools, houses, bushes, ferns,
+// pine trees, mountain peaks. Accepts scenery array from level config.
 
-export function drawScenery(ctx) {
-  for (const s of SCENERY) {
+export function drawScenery(ctx, scenery = []) {
+  for (const s of scenery) {
     switch (s.kind) {
-      case 'pasture': drawPasture(ctx, s); break;
-      case 'school':  drawSchool(ctx, s);  break;
-      case 'house':   drawHouse(ctx, s);   break;
-      case 'bush':    drawBush(ctx, s);    break;
-      case 'fern':    drawFern(ctx, s);    break;
+      case 'pasture':  drawPasture(ctx, s);  break;
+      case 'school':   drawSchool(ctx, s);   break;
+      case 'house':    drawHouse(ctx, s);    break;
+      case 'bush':     drawBush(ctx, s);     break;
+      case 'fern':     drawFern(ctx, s);     break;
+      case 'pine':     drawPine(ctx, s);     break;
+      case 'mountain': drawMountain(ctx, s); break;
     }
   }
 }
@@ -80,4 +81,57 @@ function drawFern(ctx, s) {
     ctx.fill();
   }
   ctx.restore();
+}
+
+function drawPine(ctx, s) {
+  // Trunk
+  ctx.fillStyle = '#4a3828';
+  ctx.fillRect(s.x - 2, s.y - s.r * 0.2, 4, s.r * 0.5);
+  // Lower layer (widest)
+  ctx.fillStyle = '#1e4a1e';
+  ctx.beginPath();
+  ctx.moveTo(s.x, s.y - s.r * 1.1);
+  ctx.lineTo(s.x - s.r, s.y + s.r * 0.1);
+  ctx.lineTo(s.x + s.r, s.y + s.r * 0.1);
+  ctx.closePath();
+  ctx.fill();
+  // Upper layer
+  ctx.fillStyle = '#2a5e2a';
+  ctx.beginPath();
+  ctx.moveTo(s.x, s.y - s.r * 1.35);
+  ctx.lineTo(s.x - s.r * 0.65, s.y - s.r * 0.45);
+  ctx.lineTo(s.x + s.r * 0.65, s.y - s.r * 0.45);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawMountain(ctx, s) {
+  const peaks = [
+    { rx: 0.08, ht: 0.65 }, { rx: 0.18, ht: 0.88 }, { rx: 0.30, ht: 0.76 },
+    { rx: 0.42, ht: 0.95 }, { rx: 0.55, ht: 0.82 }, { rx: 0.67, ht: 0.72 },
+    { rx: 0.80, ht: 0.86 }, { rx: 0.92, ht: 0.60 },
+  ];
+  const baseY = s.y + s.h;
+  for (const p of peaks) {
+    const px  = s.x + p.rx * s.w;
+    const top = s.y + s.h * (1 - p.ht);
+    const hw  = s.w * 0.10;
+    // Mountain body
+    ctx.fillStyle = '#7a8e8a';
+    ctx.beginPath();
+    ctx.moveTo(px - hw * 1.4, baseY);
+    ctx.lineTo(px, top);
+    ctx.lineTo(px + hw * 1.4, baseY);
+    ctx.closePath();
+    ctx.fill();
+    // Snow cap
+    const snowH = (baseY - top) * 0.22;
+    ctx.fillStyle = '#ddeae8';
+    ctx.beginPath();
+    ctx.moveTo(px - hw * 0.38, top + snowH);
+    ctx.lineTo(px, top);
+    ctx.lineTo(px + hw * 0.38, top + snowH);
+    ctx.closePath();
+    ctx.fill();
+  }
 }
