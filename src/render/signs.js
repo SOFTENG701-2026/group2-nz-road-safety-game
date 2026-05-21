@@ -27,7 +27,7 @@ function drawSign(ctx, s) {
 function drawRailwayCrossing(ctx) {
   ctx.save();
   ctx.rotate(Math.PI / 4);
-  ctx.fillStyle = '#f5b81d';
+  ctx.fillStyle = '#ffdb00';
   ctx.fillRect(-15, -15, 30, 30);
   ctx.strokeStyle = '#1a1a1a';
   ctx.lineWidth = 1.5;
@@ -46,8 +46,22 @@ function drawRailwayCrossing(ctx) {
 
 function drawOneLaneBridge(ctx) {
   ctx.save();
+  ctx.translate(0, -45);
+  drawOneLaneBridgeSymbol(ctx);
+  ctx.restore();
+  
+  ctx.save();
+  ctx.translate(0, -5);
+  drawOneLaneBridgeGiveWay(ctx);
+  ctx.restore();
+
+  drawPole(ctx);
+}
+
+function drawOneLaneBridgeSymbol(ctx) {
+  ctx.save();
   ctx.rotate(Math.PI / 4);
-  ctx.fillStyle = '#f5b81d';
+  ctx.fillStyle = '#ffdb00';
   ctx.fillRect(-15, -15, 30, 30);
   ctx.strokeStyle = '#1a1a1a';
   ctx.lineWidth = 1.5;
@@ -55,12 +69,82 @@ function drawOneLaneBridge(ctx) {
   ctx.restore();
   
   // Bridge symbol (two vertical bars narrowing)
-  ctx.fillStyle = '#1a1a1a';
-  ctx.fillRect(-8, -10, 3, 20);
-  ctx.fillRect(5, -10, 3, 20);
-  ctx.fillRect(-8, -10, 16, 3);
-  ctx.fillRect(-8, 7, 16, 3);
-  drawPole(ctx);
+  ctx.save();
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+
+  ctx.beginPath();
+  ctx.moveTo(-8, -8);
+  ctx.lineTo(-4, -4);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(8, -8);
+  ctx.lineTo(4, -4);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(-4, -4);
+  ctx.lineTo(-4, 5);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(4, -4);
+  ctx.lineTo(4, 5);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(-4, 7);
+  ctx.lineTo(-7, 10);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(4, 7);
+  ctx.lineTo(7, 10);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawOneLaneBridgeGiveWay(ctx) {
+  ctx.save();
+
+  ctx.beginPath();
+  ctx.arc(0, 0, 20, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = '#d40000';
+  ctx.stroke();
+
+  ctx.fillStyle = '#d40000';
+
+  ctx.beginPath();
+  ctx.moveTo(-8, 10);
+  ctx.lineTo(-4, 10);
+  ctx.lineTo(-4, -2);
+  ctx.lineTo(-1, -2);
+  ctx.lineTo(-6, -14);
+  ctx.lineTo(-11, -2);
+  ctx.lineTo(-8, -2);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#000000';
+
+  ctx.beginPath();
+  ctx.moveTo(8, -14);
+  ctx.lineTo(2, -14);
+  ctx.lineTo(2, 6);
+  ctx.lineTo(-2, 6);
+  ctx.lineTo(4.5, 15);
+  ctx.lineTo(12, 6);
+  ctx.lineTo(8, 6);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
 }
 
 function drawKeepLeft(ctx) {
@@ -78,7 +162,7 @@ function drawKeepLeft(ctx) {
 function drawSchool30(ctx) {
   drawSpeedRoundel(ctx, 17, 13, 'bold 12px ui-sans-serif', '30');
   // SCHOOL plate below
-  ctx.fillStyle = '#f5b81d';
+  ctx.fillStyle = '#ffdb00';
   ctx.fillRect(-18, 18, 36, 12);
   ctx.fillStyle = '#1a1a1a';
   ctx.font = 'bold 8px ui-sans-serif';
@@ -96,7 +180,7 @@ function drawSpeedLimit(ctx, kmh) {
 function drawSpeedRoundel(ctx, outer, inner, font, label) {
   ctx.fillStyle = '#fff';
   ctx.beginPath(); ctx.arc(0, 0, outer, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#c0282a';
+  ctx.fillStyle = '#c0111e';
   ctx.beginPath(); ctx.arc(0, 0, outer, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#fff';
   ctx.beginPath(); ctx.arc(0, 0, inner, 0, Math.PI * 2); ctx.fill();
@@ -117,20 +201,20 @@ function drawKiwiCrossing(ctx) {
   ctx.lineCap = 'round';
 
   drawDiamondPath(ctx, 24);
-  ctx.fillStyle = '#caff12';
+  ctx.fillStyle = '#a2ff31';
   ctx.fill();
 
-  drawDiamondPath(ctx, 21);
+  drawDiamondPath(ctx, 22);
   ctx.strokeStyle = '#050505';
-  ctx.lineWidth = 3.2;
+  ctx.lineWidth = 1;
   ctx.stroke();
   ctx.restore();
 
   ctx.fillStyle = '#050505';
-  [-14, -9, -4.8].forEach((x) => drawCrossingBar(ctx, x, -1));
-  [4.8, 9, 14].forEach((x) => drawCrossingBar(ctx, x, 1));
-
-  ctx.fillRect(-1.45, -8, 2.9, 23.5);
+  [-13, -9, -4.8].forEach((x) => drawCrossingBar(ctx, x, -0.6));
+  [4.8, 9, 13].forEach((x) => drawCrossingBar(ctx, x, 0.6));
+  
+  ctx.fillRect(-0.6, -10, 1.6, 24);
 }
 
 function drawDiamondPath(ctx, radius) {
@@ -143,9 +227,9 @@ function drawDiamondPath(ctx, radius) {
 }
 
 function drawCrossingBar(ctx, x, side) {
-  const halfWidth = 1.65;
-  const top = -2.5;
-  const bottom = 7.5;
+  const halfWidth = 1.15;
+  const top = -5.5;
+  const bottom = 5.5;
   const slant = side * 0.9;
 
   ctx.beginPath();
@@ -160,17 +244,18 @@ function drawCrossingBar(ctx, x, side) {
 function drawGiveWay(ctx) {
   ctx.fillStyle = '#fff';
   ctx.beginPath();
-  ctx.moveTo(-16, -12); ctx.lineTo(16, -12); ctx.lineTo(0, 14);
+  ctx.moveTo(-17, -13); ctx.lineTo(17, -13); ctx.lineTo(0, 15);
   ctx.closePath();
   ctx.fill();
-  ctx.strokeStyle = '#c0282a';
+  ctx.strokeStyle = '#c0111e';
   ctx.lineWidth = 3;
   ctx.stroke();
-  ctx.fillStyle = '#1a1a1a';
+  ctx.fillStyle = '#c0111e';
   ctx.font = 'bold 7px ui-sans-serif';
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText('GIVE', 0, -6);
-  ctx.fillText('WAY',  0,  2);
+  ctx.fillText('GIVE', 0, -7);
+  ctx.font = 'bold 6px ui-sans-serif';
+  ctx.fillText('WAY',  0,  0);
   ctx.fillStyle = '#888';
   ctx.fillRect(-1, 14, 2, 12);
 }
@@ -180,7 +265,7 @@ function drawGiveWay(ctx) {
 function drawRoundaboutWarning(ctx) {
   ctx.save();
   ctx.rotate(Math.PI / 4);
-  ctx.fillStyle = '#f5b81d';
+  ctx.fillStyle = '#ffdb00';
   ctx.fillRect(-15, -15, 30, 30);
   ctx.strokeStyle = '#1a1a1a';
   ctx.lineWidth = 1.5;
@@ -222,7 +307,7 @@ function drawSlipperySurface(ctx) {
   // Yellow diamond background
   ctx.save();
   ctx.rotate(Math.PI / 4);
-  ctx.fillStyle = '#f5b81d';
+  ctx.fillStyle = '#ffdb00';
   ctx.fillRect(-15, -15, 30, 30);
   ctx.strokeStyle = '#1a1a1a';
   ctx.lineWidth = 1.5;
