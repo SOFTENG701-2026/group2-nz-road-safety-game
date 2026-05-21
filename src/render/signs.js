@@ -14,8 +14,9 @@ function drawSign(ctx, s) {
     case 'speed-30':          drawSpeedLimit(ctx, 30);       break;
     case 'speed-50':          drawSpeedLimit(ctx, 50);       break;
     case 'speed-100':         drawSpeedLimit(ctx, 100);      break;
-    case 'slippery-surface':  drawSlipperySurface(ctx);      break;
-    case 'kiwi-crossing':     drawKiwiCrossing(ctx);        break;
+    case 'slippery-surface':    drawSlipperySurface(ctx);    break;
+    case 'roundabout-warning':  drawRoundaboutWarning(ctx);  break;
+    case 'kiwi-crossing':       drawKiwiCrossing(ctx);       break;
     case 'give-way':          drawGiveWay(ctx);             break;
     case 'one-lane-bridge':   drawOneLaneBridge(ctx);       break;
     case 'railway-crossing':  drawRailwayCrossing(ctx);     break;
@@ -105,24 +106,55 @@ function drawSpeedRoundel(ctx, outer, inner, font, label) {
   ctx.fillText(label, 0, 1);
 }
 
+// NZ W011 — Pedestrian Crossing Ahead.
+// Fluorescent lime-green diamond with a centre road line and zebra bars.
 function drawKiwiCrossing(ctx) {
+  drawPole(ctx, 22);
+
+  // Diamond background with a bright outer edge and black inset border.
   ctx.save();
-  ctx.rotate(Math.PI / 4);
-  ctx.fillStyle = '#f5b81d';
-  ctx.fillRect(-15, -15, 30, 30);
-  ctx.strokeStyle = '#1a1a1a';
-  ctx.lineWidth = 1.5;
-  ctx.strokeRect(-15, -15, 30, 30);
-  ctx.restore();
-  // Kiwi silhouette
-  ctx.fillStyle = '#1a1a1a';
-  ctx.beginPath(); ctx.ellipse(0, 2, 8, 5, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(-8, 1); ctx.lineTo(-15, 0); ctx.lineTo(-8, 3); ctx.closePath();
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+
+  drawDiamondPath(ctx, 24);
+  ctx.fillStyle = '#caff12';
   ctx.fill();
-  ctx.fillRect(-2, 6, 1.5, 4);
-  ctx.fillRect( 3, 6, 1.5, 4);
-  drawPole(ctx);
+
+  drawDiamondPath(ctx, 21);
+  ctx.strokeStyle = '#050505';
+  ctx.lineWidth = 3.2;
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.fillStyle = '#050505';
+  [-14, -9, -4.8].forEach((x) => drawCrossingBar(ctx, x, -1));
+  [4.8, 9, 14].forEach((x) => drawCrossingBar(ctx, x, 1));
+
+  ctx.fillRect(-1.45, -8, 2.9, 23.5);
+}
+
+function drawDiamondPath(ctx, radius) {
+  ctx.beginPath();
+  ctx.moveTo(0, -radius);
+  ctx.lineTo(radius, 0);
+  ctx.lineTo(0, radius);
+  ctx.lineTo(-radius, 0);
+  ctx.closePath();
+}
+
+function drawCrossingBar(ctx, x, side) {
+  const halfWidth = 1.65;
+  const top = -2.5;
+  const bottom = 7.5;
+  const slant = side * 0.9;
+
+  ctx.beginPath();
+  ctx.moveTo(x - halfWidth - slant, top);
+  ctx.lineTo(x + halfWidth - slant, top);
+  ctx.lineTo(x + halfWidth + slant, bottom);
+  ctx.lineTo(x - halfWidth + slant, bottom);
+  ctx.closePath();
+  ctx.fill();
 }
 
 function drawGiveWay(ctx) {
@@ -141,6 +173,47 @@ function drawGiveWay(ctx) {
   ctx.fillText('WAY',  0,  2);
   ctx.fillStyle = '#888';
   ctx.fillRect(-1, 14, 2, 12);
+}
+
+// NZ W087 — Roundabout Ahead warning sign.
+// Yellow diamond, clockwise circular arrow (~270° arc) + arrowhead + central dot.
+function drawRoundaboutWarning(ctx) {
+  ctx.save();
+  ctx.rotate(Math.PI / 4);
+  ctx.fillStyle = '#f5b81d';
+  ctx.fillRect(-15, -15, 30, 30);
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(-15, -15, 30, 30);
+  ctx.restore();
+
+  // Arc: from 4 o'clock (~60°) clockwise ~270° to 2 o'clock (~330°)
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.arc(0, 0, 8, Math.PI / 3, Math.PI * 11 / 6, false);
+  ctx.stroke();
+
+  // Arrowhead at 2 o'clock (angle = 330° = 11π/6)
+  const ea = Math.PI * 11 / 6;
+  const ex = Math.cos(ea) * 8;
+  const ey = Math.sin(ea) * 8;
+  const tx = -Math.sin(ea);   // clockwise tangent x  =  0.5
+  const ty =  Math.cos(ea);   // clockwise tangent y  =  0.866
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath();
+  ctx.moveTo(ex + tx * 4.5,              ey + ty * 4.5);
+  ctx.lineTo(ex - tx * 3 - ty * 3.5,    ey - ty * 3 + tx * 3.5);
+  ctx.lineTo(ex - tx * 3 + ty * 3.5,    ey - ty * 3 - tx * 3.5);
+  ctx.closePath();
+  ctx.fill();
+
+  // Central island dot
+  ctx.beginPath();
+  ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  drawPole(ctx);
 }
 
 // NZ W073 — Slippery Surface warning sign.

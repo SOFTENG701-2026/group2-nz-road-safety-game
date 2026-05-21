@@ -159,31 +159,45 @@ export function drawRoads(ctx, g) {
     }
   }
 
-  // ── Roundabout (Level 3)
+  // ── Roundabout: E/W only (no N/S arms), ring road + clockwise arrows
   const roundaboutX = level?.config?.roundaboutX;
   if (roundaboutX) {
-    // Outer circle
-    ctx.fillStyle = '#3a3a3e';
-    ctx.beginPath(); ctx.arc(roundaboutX, MAIN_Y, 80, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    ctx.stroke();
+    const R_OUT = 80;
+    const R_IN  = 38;
+    const R_MID = (R_OUT + R_IN) / 2;
 
-    // Central island
-    ctx.fillStyle = '#4e7a4e'; // grass
-    ctx.beginPath(); ctx.arc(roundaboutX, MAIN_Y, 40, 0, Math.PI * 2); ctx.fill();
+    // ① Ring road disc — same grey as main road for seamless E/W junction
+    ctx.fillStyle = '#3a3a3e';
+    ctx.beginPath(); ctx.arc(roundaboutX, MAIN_Y, R_OUT, 0, Math.PI * 2); ctx.fill();
+
+    // ② White outer border — full circle
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 3;
-    ctx.stroke();
-    
-    // Directional arrows (visual only)
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    for (let a = 0; a < Math.PI * 2; a += Math.PI / 2) {
+    ctx.beginPath(); ctx.arc(roundaboutX, MAIN_Y, R_OUT, 0, Math.PI * 2); ctx.stroke();
+
+    // ③ Central grass island
+    ctx.fillStyle = '#4e7a4e';
+    ctx.beginPath(); ctx.arc(roundaboutX, MAIN_Y, R_IN, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#b8bcc4';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(roundaboutX, MAIN_Y, R_IN, 0, Math.PI * 2); ctx.stroke();
+
+    // ④ Clockwise arrows on ring road (4 positions show circulation direction)
+    ctx.fillStyle = 'rgba(255,255,255,0.82)';
+    for (let i = 0; i < 4; i++) {
+      const a  = i * Math.PI / 2;
+      const px = roundaboutX + Math.cos(a) * R_MID;
+      const py = MAIN_Y      + Math.sin(a) * R_MID;
+      const tx = -Math.sin(a);
+      const ty =  Math.cos(a);
       ctx.save();
-      ctx.translate(roundaboutX, MAIN_Y);
-      ctx.rotate(a);
-      ctx.beginPath(); ctx.moveTo(60, -10); ctx.lineTo(75, 0); ctx.lineTo(60, 10); ctx.stroke();
+      ctx.translate(px, py);
+      ctx.beginPath();
+      ctx.moveTo(tx * 7,              ty * 7);
+      ctx.lineTo(-tx * 4 - ty * 3.5, -ty * 4 + tx * 3.5);
+      ctx.lineTo(-tx * 4 + ty * 3.5, -ty * 4 - tx * 3.5);
+      ctx.closePath();
+      ctx.fill();
       ctx.restore();
     }
   }
@@ -210,33 +224,6 @@ export function drawRoads(ctx, g) {
     ctx.beginPath(); ctx.moveTo(railX + 40, MAIN_Y + 30); ctx.lineTo(railX + 100, MAIN_Y - 30); ctx.stroke();
   }
 
-  // ── Give-way marking — white line + triangles across the player's lane
-  // Player drives east in the north lane (y < MAIN_Y); marking faces west.
-  if (sideX) {
-    const laneTop = MAIN_Y - ROAD_W / 2 + 2;
-    const laneMid = MAIN_Y - 2;
-    // Stop line across the north lane
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 3;
-    ctx.setLineDash([7, 5]);
-    ctx.beginPath();
-    ctx.moveTo(sideX - 8, laneTop);
-    ctx.lineTo(sideX - 8, laneMid);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    // Two triangles pointing left (west) = toward approaching player
-    ctx.fillStyle = '#fff';
-    const laneH = laneMid - laneTop;
-    for (let i = 0; i < 2; i++) {
-      const cy = laneTop + laneH * (0.28 + i * 0.44);
-      ctx.beginPath();
-      ctx.moveTo(sideX - 4, cy - 7);   // top-right
-      ctx.lineTo(sideX - 4, cy + 7);   // bottom-right
-      ctx.lineTo(sideX - 20, cy);       // apex pointing west
-      ctx.closePath();
-      ctx.fill();
-    }
-  }
 
   // Finish line (checkered)
   for (let i = 0; i < 8; i++) {
