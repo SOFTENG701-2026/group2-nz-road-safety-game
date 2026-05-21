@@ -46,6 +46,20 @@ function drawRailwayCrossing(ctx) {
 
 function drawOneLaneBridge(ctx) {
   ctx.save();
+  ctx.translate(0, -45);
+  drawOneLaneBridgeSymbol(ctx);
+  ctx.restore();
+  
+  ctx.save();
+  ctx.translate(0, -5);
+  drawOneLaneBridgeGiveWay(ctx);
+  ctx.restore();
+
+  drawPole(ctx);
+}
+
+function drawOneLaneBridgeSymbol(ctx) {
+  ctx.save();
   ctx.rotate(Math.PI / 4);
   ctx.fillStyle = '#ffdb00';
   ctx.fillRect(-15, -15, 30, 30);
@@ -55,12 +69,82 @@ function drawOneLaneBridge(ctx) {
   ctx.restore();
   
   // Bridge symbol (two vertical bars narrowing)
-  ctx.fillStyle = '#1a1a1a';
-  ctx.fillRect(-8, -10, 3, 20);
-  ctx.fillRect(5, -10, 3, 20);
-  ctx.fillRect(-8, -10, 16, 3);
-  ctx.fillRect(-8, 7, 16, 3);
-  drawPole(ctx);
+  ctx.save();
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+
+  ctx.beginPath();
+  ctx.moveTo(-8, -8);
+  ctx.lineTo(-4, -4);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(8, -8);
+  ctx.lineTo(4, -4);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(-4, -4);
+  ctx.lineTo(-4, 5);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(4, -4);
+  ctx.lineTo(4, 5);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(-4, 7);
+  ctx.lineTo(-7, 10);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(4, 7);
+  ctx.lineTo(7, 10);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawOneLaneBridgeGiveWay(ctx) {
+  ctx.save();
+
+  ctx.beginPath();
+  ctx.arc(0, 0, 20, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = '#d40000';
+  ctx.stroke();
+
+  ctx.fillStyle = '#d40000';
+
+  ctx.beginPath();
+  ctx.moveTo(-8, 10);
+  ctx.lineTo(-4, 10);
+  ctx.lineTo(-4, -2);
+  ctx.lineTo(-1, -2);
+  ctx.lineTo(-6, -14);
+  ctx.lineTo(-11, -2);
+  ctx.lineTo(-8, -2);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#000000';
+
+  ctx.beginPath();
+  ctx.moveTo(8, -14);
+  ctx.lineTo(2, -14);
+  ctx.lineTo(2, 6);
+  ctx.lineTo(-2, 6);
+  ctx.lineTo(4.5, 15);
+  ctx.lineTo(12, 6);
+  ctx.lineTo(8, 6);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
 }
 
 function drawKeepLeft(ctx) {
