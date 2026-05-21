@@ -28,7 +28,6 @@ export default function ProgressBar({ carX, level }) {
         background: 'rgba(255,255,255,0.08)',
         borderRadius: 2,
       }}>
-        {/* Filled portion */}
         <div style={{
           position: 'absolute', left: 0, top: 0, bottom: 0,
           width: `${progress * 100}%`,
@@ -55,7 +54,6 @@ export default function ProgressBar({ carX, level }) {
           );
         })}
 
-        {/* Player dot */}
         <div style={{
           position: 'absolute',
           left: `${progress * 100}%`,

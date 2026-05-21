@@ -44,7 +44,7 @@ export default function TopStrip({ score, onReset, onBack, level }) {
           cursor: 'pointer',
           fontFamily: 'inherit',
           fontWeight: 500,
-        }}>↻ Retry</button>
+        }}>Retry</button>
       </div>
     </div>
   );

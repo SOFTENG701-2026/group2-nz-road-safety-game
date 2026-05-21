@@ -1,6 +1,6 @@
 // World dimensions and key positions. Tune these to change the level layout.
 
-export const W = 1600;          // world width  (px)
+export const W = 1600;          // world width (px)
 export const H = 1100;          // world height (px)
 
 export const ROAD_W = 110;      // 2-lane road width
@@ -19,5 +19,5 @@ export const PED_X = 980;
 export const START_X  = 140;
 export const FINISH_X = 1480;
 
-// Speed conversion: tuned so 50 px/s ≈ 30 km/h, 90 px/s ≈ 50 km/h.
+// Speed conversion: tuned so 50 px/s is about 30 km/h, 90 px/s is about 50 km/h.
 export const KMH_PER_PXS = 50 / 90;

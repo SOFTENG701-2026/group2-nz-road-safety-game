@@ -1,4 +1,4 @@
-// Car physics step: input → acceleration → steering → position.
+// Car physics step: input, acceleration, steering, then position.
 // Difficulty only changes the top speed.
 import { W, H } from './constants.js';
 import { onRoad, inSchoolZone } from './geofence.js';
@@ -35,13 +35,11 @@ export function stepPhysics(g, dt, difficulty = 'normal') {
 
   c.speed = Math.max(-60, Math.min(maxSpeed, c.speed));
 
-  // Steering rate depends on speed (no steering when stopped)
   const steerRate = 2.4 * Math.min(1, Math.abs(c.speed) / 60);
   const dir = Math.sign(c.speed || 1);
   if (g.keys.left)  c.angle -= steerRate * dt * dir;
   if (g.keys.right) c.angle += steerRate * dt * dir;
 
-  // Move
   c.x += Math.cos(c.angle) * c.speed * dt;
   c.y += Math.sin(c.angle) * c.speed * dt;
 
@@ -51,7 +49,6 @@ export function stepPhysics(g, dt, difficulty = 'normal') {
   c.y = Math.max(20, Math.min(H - 20, c.y));
 }
 
-// Bring `speed` toward 0 by `decel`, snapping to 0 when close enough.
 function decay(speed, decel) {
   if (Math.abs(speed) < decel) return 0;
   return speed - Math.sign(speed) * decel;

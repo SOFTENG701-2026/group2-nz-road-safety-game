@@ -3,7 +3,7 @@
 export default function ClickOverlay({
   active,
   onActivate,
-  label = 'Click to play · Arrow keys + Space',
+  label = 'Click to play - Arrow keys + Space',
 }) {
   if (active) return null;
   return (
@@ -31,12 +31,12 @@ export default function ClickOverlay({
           width: 32, height: 32, borderRadius: 16,
           background: '#d83a2e',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#fff', fontSize: 18,
-        }}>▶</div>
+          color: '#fff', fontSize: 16,
+        }}>Play</div>
         <div>
           <div style={{ fontSize: 13 }}>{label}</div>
           <div style={{ fontSize: 11, fontWeight: 400, color: '#666' }}>
-            ↑ accelerate · ↓ reverse · ←→ steer · Space brake · R reset
+            Up accelerate - Down reverse - Left/Right steer - Space brake - R reset
           </div>
         </div>
       </div>
