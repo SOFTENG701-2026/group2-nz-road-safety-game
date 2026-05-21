@@ -16,8 +16,19 @@ export function onRoadSide(x, y, sideX) {
 }
 
 export function onRoad(x, y, g) {
-  const worldW = g?.level?.worldWidth ?? W;
-  const sideX = g?.level?.config?.sideX;
+  const worldW      = g?.level?.worldWidth ?? W;
+  const sideX       = g?.level?.config?.sideX;
+  const roundaboutX = g?.level?.config?.roundaboutX;
+
+  // Treat the entire roundabout disc as road — the disc (r=80) extends 25 px
+  // beyond the road band (±55), so without this check the car gets stuck in the
+  // visually-grey-but-logically-grass fringe above and below the main road.
+  if (roundaboutX) {
+    const dx = x - roundaboutX;
+    const dy = y - MAIN_Y;
+    if (dx * dx + dy * dy <= 80 * 80) return true;
+  }
+
   return onRoadMain(x, y, worldW) || onRoadSide(x, y, sideX);
 }
 
