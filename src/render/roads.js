@@ -223,10 +223,10 @@ export function drawRoads(ctx, g) {
     const R_MID = (R_OUT + R_IN) / 2;
     const hw    = ROAD_W / 2; // 55
 
-    // ① North and south road arms (drawn before disc so disc covers the junction area)
+    // ① North and south road arm. Draw it through the roundabout so it tucks
+    // underneath the circular road, matching the natural E/W road join.
     ctx.fillStyle = '#3a3a3e';
-    ctx.fillRect(roundaboutX - hw, 0,           ROAD_W, MAIN_Y - R_OUT); // north arm
-    ctx.fillRect(roundaboutX - hw, MAIN_Y + R_OUT, ROAD_W, H - MAIN_Y - R_OUT); // south arm
+    ctx.fillRect(roundaboutX - hw, 0, ROAD_W, H);
 
     // Arm shoulders
     ctx.fillStyle = '#5a5a5e';

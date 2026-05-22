@@ -171,6 +171,7 @@ export const LEVELS = [
       { id: 'left',       label: 'Keep to the left lane'          },
       { id: 'ped',        label: 'Stop for pedestrians'           },
       { id: 'roundabout', label: 'Slow for roundabout (≤40 km/h)' },
+      { id: 'roundabout-giveway', label: 'Give way in roundabout' },
       { id: 'giveway',    label: 'Give way at intersection'       },
       { id: 'finish',     label: 'Reach the finish line'          },
     ],

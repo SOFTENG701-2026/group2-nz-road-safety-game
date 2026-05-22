@@ -28,11 +28,14 @@ export const COACH_LINES = {
   giveWayAhead:     { text: 'Give Way ahead — slow down and check the side road.',                                     tone: 'warn' },
   giveWayFail:      { text: "You didn't give way! Slow to ≤25 km/h and check before crossing.",                      tone: 'bad'  },
   giveWayGood:      { text: 'Good — you slowed and gave way correctly.',                                              tone: 'good' },
+  trafficCollision: { text: 'Collision! Give way to traffic crossing the intersection.',                              tone: 'bad'  },
 
   // ── Roundabout ────────────────────────────────────────────────────────────
   roundaboutAhead:  { text: 'Roundabout ahead — slow down, go clockwise, give way to vehicles on your right.',       tone: 'warn' },
   roundaboutFast:   { text: 'Too fast through the roundabout! Slow right down and give way to the right.',           tone: 'bad'  },
   roundaboutGood:   { text: 'Roundabout navigated well — good speed and awareness.',                                  tone: 'good' },
+  roundaboutGiveWayFail: { text: 'Collision in the roundabout — give way to traffic already moving through it.',      tone: 'bad'  },
+  roundaboutGiveWayGood: { text: 'Good — you gave way to the car in the roundabout.',                                 tone: 'good' },
 
   // ── Gravel / unsealed road ────────────────────────────────────────────────
   gravelAhead:      { text: 'Unsealed road ahead — slow down. Gravel is slippery and stones can chip your screen.',  tone: 'warn' },
