@@ -8,18 +8,22 @@ function drawSign(ctx, s) {
   ctx.save();
   ctx.translate(s.x, s.y);
   switch (s.kind) {
-    case 'keep-left':         drawKeepLeft(ctx);            break;
+    case 'keep-left':           drawKeepLeft(ctx);              break;
     case 'school-30-start':
-    case 'school-30-end':     drawSchool30(ctx);            break;
-    case 'speed-30':          drawSpeedLimit(ctx, 30);       break;
-    case 'speed-50':          drawSpeedLimit(ctx, 50);       break;
-    case 'speed-100':         drawSpeedLimit(ctx, 100);      break;
-    case 'slippery-surface':    drawSlipperySurface(ctx);    break;
-    case 'roundabout-warning':  drawRoundaboutWarning(ctx);  break;
-    case 'kiwi-crossing':       drawKiwiCrossing(ctx);       break;
-    case 'give-way':          drawGiveWay(ctx);             break;
-    case 'one-lane-bridge':   drawOneLaneBridge(ctx);       break;
-    case 'railway-crossing':  drawRailwayCrossing(ctx);     break;
+    case 'school-30-end':
+    case 'school-zone-start':
+    case 'school-zone-end':     drawSchoolZone(ctx);            break;
+    case 'speed-30':            drawSpeedLimit(ctx, 30);        break;
+    case 'speed-40':            drawSpeedLimit(ctx, 40);        break;
+    case 'speed-50':            drawSpeedLimit(ctx, 50);        break;
+    case 'speed-100':           drawSpeedLimit(ctx, 100);       break;
+    case 'slippery-surface':    drawSlipperySurface(ctx);       break;
+    case 'loose-chippings':     drawLooseChippings(ctx);        break;
+    case 'roundabout-warning':  drawRoundaboutWarning(ctx);     break;
+    case 'kiwi-crossing':       drawKiwiCrossing(ctx);          break;
+    case 'give-way':            drawGiveWay(ctx);               break;
+    case 'one-lane-bridge':     drawOneLaneBridge(ctx);         break;
+    case 'railway-crossing':    drawRailwayCrossing(ctx);       break;
   }
   ctx.restore();
 }
@@ -147,29 +151,88 @@ function drawOneLaneBridgeGiveWay(ctx) {
   ctx.restore();
 }
 
+// NZ R2-1 — Keep Left regulatory sign.
+// Blue circle · white bollard on the right · white arrow curving left around it.
 function drawKeepLeft(ctx) {
+  // Blue circle background
   ctx.fillStyle = '#1a5fb4';
-  ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath();
+  ctx.arc(0, 0, 16, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.save();
+
+  // White bollard (rounded rectangle) on the right side
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(3, -8, 4, 14);          // body
+  ctx.beginPath();
+  ctx.arc(5, -8, 2, Math.PI, 0);       // rounded top
+  ctx.fill();
+
+  // Curved arrow: rises from bottom-centre, bends LEFT around the bollard
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth   = 2.8;
+  ctx.lineCap     = 'round';
+  ctx.lineJoin    = 'round';
+
+  ctx.beginPath();
+  ctx.moveTo(-1, 12);                         // bottom
+  ctx.lineTo(-1, -1);                         // straight up
+  ctx.bezierCurveTo(-1, -8, -4, -10, -10, -10); // curve left
+  ctx.stroke();
+
+  // Arrowhead at the left end, pointing left
   ctx.fillStyle = '#fff';
   ctx.beginPath();
-  ctx.moveTo(-8, 0); ctx.lineTo(4, -8); ctx.lineTo(4, -3);
-  ctx.lineTo(10, -3); ctx.lineTo(10, 3); ctx.lineTo(4, 3); ctx.lineTo(4, 8);
+  ctx.moveTo(-13, -10);   // tip (far left)
+  ctx.lineTo(-9,  -7);    // lower arm
+  ctx.lineTo(-9,  -13);   // upper arm
   ctx.closePath();
   ctx.fill();
+
+  ctx.restore();
   drawPole(ctx);
 }
 
-function drawSchool30(ctx) {
-  drawSpeedRoundel(ctx, 17, 13, 'bold 12px ui-sans-serif', '30');
-  // SCHOOL plate below
+// NZ school zone sign: 40 km/h roundel · yellow flashing lights · SCHOOL ZONE plate
+function drawSchoolZone(ctx) {
+  // Speed roundel "40"
+  drawSpeedRoundel(ctx, 17, 13, 'bold 12px ui-sans-serif', '40');
+
+  // Yellow flashing light dots on either side of the roundel
+  const dotR = 5.5;
+  [-26, 26].forEach(dx => {
+    ctx.beginPath();
+    ctx.arc(dx, 0, dotR, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffdb00';
+    ctx.fill();
+    ctx.strokeStyle = '#555';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // Inner highlight to suggest a light fitting
+    ctx.beginPath();
+    ctx.arc(dx - 1, -1, dotR * 0.45, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,180,0.6)';
+    ctx.fill();
+  });
+
+  // "SCHOOL ZONE" yellow plate
   ctx.fillStyle = '#ffdb00';
-  ctx.fillRect(-18, 18, 36, 12);
+  ctx.fillRect(-23, 19, 46, 20);
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.lineWidth = 1.2;
+  ctx.strokeRect(-23, 19, 46, 20);
+
   ctx.fillStyle = '#1a1a1a';
-  ctx.font = 'bold 8px ui-sans-serif';
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText('SCHOOL', 0, 24);
+  ctx.font = 'bold 7.5px ui-sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('SCHOOL', 0, 26);
+  ctx.fillText('ZONE',   0, 34);
+
+  // Pole
   ctx.fillStyle = '#888';
-  ctx.fillRect(-1, 30, 2, 12);
+  ctx.fillRect(-1, 39, 2, 14);
 }
 
 function drawSpeedLimit(ctx, kmh) {
@@ -261,8 +324,9 @@ function drawGiveWay(ctx) {
 }
 
 // NZ W087 — Roundabout Ahead warning sign.
-// Yellow diamond, clockwise circular arrow (~270° arc) + arrowhead + central dot.
+// Yellow diamond with 3 separate clockwise curved arrows (120° apart).
 function drawRoundaboutWarning(ctx) {
+  // Yellow diamond
   ctx.save();
   ctx.rotate(Math.PI / 4);
   ctx.fillStyle = '#ffdb00';
@@ -272,28 +336,38 @@ function drawRoundaboutWarning(ctx) {
   ctx.strokeRect(-15, -15, 30, 30);
   ctx.restore();
 
-  // Arc: from 4 o'clock (~60°) clockwise ~270° to 2 o'clock (~330°)
+  const R   = 8;              // arc radius
+  const gap = 0.28;           // gap between each arrow (radians)
+  const span = (2 * Math.PI / 3) - gap * 2; // arc sweep per arrow
+
   ctx.strokeStyle = '#1a1a1a';
-  ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  ctx.arc(0, 0, 8, Math.PI / 3, Math.PI * 11 / 6, false);
-  ctx.stroke();
+  ctx.lineWidth   = 2.5;
+  ctx.lineCap     = 'round';
+  ctx.fillStyle   = '#1a1a1a';
 
-  // Arrowhead at 2 o'clock (angle = 330° = 11π/6)
-  const ea = Math.PI * 11 / 6;
-  const ex = Math.cos(ea) * 8;
-  const ey = Math.sin(ea) * 8;
-  const tx = -Math.sin(ea);   // clockwise tangent x  =  0.5
-  const ty =  Math.cos(ea);   // clockwise tangent y  =  0.866
-  ctx.fillStyle = '#1a1a1a';
-  ctx.beginPath();
-  ctx.moveTo(ex + tx * 4.5,              ey + ty * 4.5);
-  ctx.lineTo(ex - tx * 3 - ty * 3.5,    ey - ty * 3 + tx * 3.5);
-  ctx.lineTo(ex - tx * 3 + ty * 3.5,    ey - ty * 3 - tx * 3.5);
-  ctx.closePath();
-  ctx.fill();
+  for (let i = 0; i < 3; i++) {
+    const startA = -Math.PI / 2 + i * (2 * Math.PI / 3) + gap;
+    const endA   = startA + span;
 
-  // Central island dot
+    // Curved arc
+    ctx.beginPath();
+    ctx.arc(0, 0, R, startA, endA, false);
+    ctx.stroke();
+
+    // Arrowhead at endA — points in clockwise tangent direction
+    const ex = Math.cos(endA) * R;
+    const ey = Math.sin(endA) * R;
+    const tx = -Math.sin(endA); // clockwise tangent x
+    const ty =  Math.cos(endA); // clockwise tangent y
+    ctx.beginPath();
+    ctx.moveTo(ex + tx * 4,             ey + ty * 4);
+    ctx.lineTo(ex - tx * 3 - ty * 3.2, ey - ty * 3 + tx * 3.2);
+    ctx.lineTo(ex - tx * 3 + ty * 3.2, ey - ty * 3 - tx * 3.2);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Central island
   ctx.beginPath();
   ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
   ctx.fill();
@@ -337,6 +411,51 @@ function drawSlipperySurface(ctx) {
   ctx.bezierCurveTo(-5, 7.5, -2, 12.5, 0, 10);
   ctx.bezierCurveTo( 2, 7.5,  5, 12.5, 9, 10);
   ctx.stroke();
+
+  drawPole(ctx);
+}
+
+// Loose chippings / gravel road warning — yellow diamond, two cars, flying stones.
+function drawLooseChippings(ctx) {
+  // Yellow diamond
+  ctx.save();
+  ctx.rotate(Math.PI / 4);
+  ctx.fillStyle = '#ffdb00';
+  ctx.fillRect(-15, -15, 30, 30);
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(-15, -15, 30, 30);
+  ctx.restore();
+
+  ctx.fillStyle = '#1a1a1a';
+
+  // Left car (driving right)
+  ctx.fillRect(-13, -1, 8, 4);   // body
+  ctx.fillRect(-11, -5, 6, 5);   // cabin
+  ctx.beginPath(); ctx.arc(-11, 3, 1.5, 0, Math.PI * 2); ctx.fill(); // front wheel
+  ctx.beginPath(); ctx.arc(-7,  3, 1.5, 0, Math.PI * 2); ctx.fill(); // rear wheel
+
+  // Right car (driving left, slightly offset)
+  ctx.fillRect(5, -1, 8, 4);
+  ctx.fillRect(5, -5, 6, 5);
+  ctx.beginPath(); ctx.arc(7,  3, 1.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(11, 3, 1.5, 0, Math.PI * 2); ctx.fill();
+
+  // Flying chips/stones between the cars
+  [[-3,-7,2.5], [0,-4,2], [2,-9,2], [-1,-11,1.5]].forEach(([x, y, r]) => {
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // Impact starburst
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.lineWidth   = 1;
+  for (let a = 0; a < 5; a++) {
+    const angle = (a / 5) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(angle) * 2, -6 + Math.sin(angle) * 2);
+    ctx.lineTo(Math.cos(angle) * 5, -6 + Math.sin(angle) * 5);
+    ctx.stroke();
+  }
 
   drawPole(ctx);
 }
