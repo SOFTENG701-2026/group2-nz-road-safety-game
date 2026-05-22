@@ -21,7 +21,7 @@ export function stepCoachEvents(g, dt) {
     }
     if (inSchoolZone(c.x, schoolZone) && !g.flags.schoolEntered) g.flags.schoolEntered = true;
     if (inSchoolZone(c.x, schoolZone)) {
-      if (pxToKmh(Math.abs(c.speed)) > 30 && !g.flags.schoolViolated) {
+      if (pxToKmh(Math.abs(c.speed)) > (isMountain ? 30 : 40) && !g.flags.schoolViolated) {
         g.flags.schoolViolated = true;
         logEvent(g, isMountain ? 'Icy road speeding' : 'School zone speeding', -25);
         g.demerits += 20;

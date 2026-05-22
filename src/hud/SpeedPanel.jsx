@@ -5,7 +5,9 @@ import { pxToKmh } from '../engine/units.js';
 
 function getActiveLimit(car, level) {
   const cfg = level?.config ?? {};
-  if (cfg.schoolZone && inSchoolZone(car.x, cfg.schoolZone)) return 30;
+  if (cfg.schoolZone && inSchoolZone(car.x, cfg.schoolZone)) {
+    return level?.id === 'mountain' ? 30 : 40; // icy road = 30, school zone = 40
+  }
   if (cfg.gravelZone && car.x >= cfg.gravelZone.x1 && car.x <= cfg.gravelZone.x2) return 60;
   return level?.speedLimit ?? 50;
 }

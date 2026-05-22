@@ -9,9 +9,9 @@ export const COACH_LINES = {
   finish:           { text: 'You made it! Check your score.',                                                         tone: 'good' },
 
   // ── School zone ───────────────────────────────────────────────────────────
-  schoolEnter:      { text: 'School zone ahead — drop to 30 km/h.',                                                  tone: 'warn' },
-  schoolSpeeding:   { text: "Slow down! It's 30 km/h here when children are present.",                               tone: 'bad'  },
-  schoolGood:       { text: 'Nice — you kept to 30 through the school zone.',                                        tone: 'good' },
+  schoolEnter:      { text: 'School zone ahead — drop to 40 km/h.',                                                  tone: 'warn' },
+  schoolSpeeding:   { text: "Slow down! It's 40 km/h here when children are present.",                               tone: 'bad'  },
+  schoolGood:       { text: 'Nice — you kept to 40 through the school zone.',                                        tone: 'good' },
 
   // ── Icy road (Level 4 — reuses school zone mechanic) ─────────────────────
   iceEnter:         { text: 'Icy road ahead — slow to 30 km/h and drive to the conditions.',                         tone: 'warn' },

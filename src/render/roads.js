@@ -163,7 +163,7 @@ export function drawRoads(ctx, g) {
   const roundaboutX = level?.config?.roundaboutX;
   if (roundaboutX) {
     const R_OUT = 80;
-    const R_IN  = 38;
+    const R_IN  = 22;   // smaller island so lane traffic (±27.5 from centre) clears it
     const R_MID = (R_OUT + R_IN) / 2;
 
     // ① Ring road disc — same grey as main road for seamless E/W junction
