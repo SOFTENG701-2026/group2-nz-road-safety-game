@@ -139,6 +139,9 @@ export function useGame({ width, height, active, level, difficulty = 'normal' })
       startEngine();
     }
     gameRef.current.keys[key] = down;
+    if (key === 'reset' && down) {
+      reset();
+    }
   }, []);
 
   return { canvasRef, game: gameRef.current, reset, setKey };

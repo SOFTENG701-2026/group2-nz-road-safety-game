@@ -4,10 +4,11 @@ import { useCallback } from 'react';
 
 const BUTTONS = [
   { id: 'up',    label: '▲', row: 1, col: 2, key: 'up'    },
+  { id: 'reset', label: '↺', row: 1, col: 1, key: 'reset'    },
   { id: 'left',  label: '◀', row: 2, col: 1, key: 'left'  },
   { id: 'down',  label: '▼', row: 2, col: 2, key: 'down'  },
   { id: 'right', label: '▶', row: 2, col: 3, key: 'right' },
-  { id: 'brake', label: '⏸', row: 1, col: 4, key: 'brake' },
+  { id: 'brake', label: '⏸', row: 1, col: 3, key: 'brake' },
 ];
 
 const BTN = {
@@ -40,11 +41,11 @@ export default function TouchControls({ setKey }) {
   return (
     <div style={{
       position: 'absolute',
-      bottom: 76,
-      left: '50%',
-      transform: 'translateX(-50%)',
+      bottom: 20,
+      left: '20%',
+      // transform: 'translateX(-50%)',
       display: 'grid',
-      gridTemplateColumns: 'repeat(4, 54px)',
+      gridTemplateColumns: 'repeat(3, 54px)',
       gridTemplateRows:    'repeat(2, 54px)',
       gap: 4,
       zIndex: 20,
