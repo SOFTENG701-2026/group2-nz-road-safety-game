@@ -1,26 +1,22 @@
 import React from 'react';
 import { LEVELS } from './levels/index.js';
+import { isLevelUnlocked } from './engine/progress.js';
 
-export default function HomePage({ onSelectLevel }) {
+export default function HomePage({ onSelectLevel, progress }) {
   return (
     <div style={{
       minHeight: '100vh',
       background: 'linear-gradient(160deg, #070c1a 0%, #0d1e30 55%, #091420 100%)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
       fontFamily: '"Space Grotesk", ui-sans-serif, system-ui',
       color: '#fff',
       padding: '48px 24px 60px',
       boxSizing: 'border-box',
     }}>
 
-      {/* ── Header ─────────────────────────────────────────────── */}
-      <div style={{ textAlign: 'center', marginBottom: 52 }}>
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8,
-          marginBottom: 18,
-        }}>
+      {/* ── Header ──────────────────────────────────────────────────────── */}
+      <div style={{ textAlign: 'center', marginBottom: 36 }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
           <NZFlag />
           <span style={{ fontSize: 10, letterSpacing: 3.5, color: '#7ec8ff', fontWeight: 700 }}>
             NZ TRANSPORT AGENCY · WAKA KOTAHI
@@ -30,26 +26,21 @@ export default function HomePage({ onSelectLevel }) {
         <h1 style={{
           fontSize: 42, fontWeight: 900, margin: 0, letterSpacing: -1.5,
           background: 'linear-gradient(135deg, #ffffff 0%, #a8d8ff 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
+          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
           lineHeight: 1.1,
         }}>
           NZ Road Safety Game
         </h1>
 
         <p style={{
-          color: 'rgba(255,255,255,0.5)',
-          marginTop: 12, fontSize: 14, maxWidth: 500,
-          lineHeight: 1.65,
+          color: 'rgba(255,255,255,0.5)', marginTop: 12, fontSize: 14,
+          maxWidth: 500, lineHeight: 1.65,
         }}>
           Learn New Zealand road rules through four interactive driving challenges.
           Each level introduces new hazards and safety concepts from the NZTA guide.
         </p>
 
-        <div style={{
-          display: 'flex', gap: 20, justifyContent: 'center',
-          marginTop: 20, flexWrap: 'wrap',
-        }}>
+        <div style={{ display: 'flex', gap: 20, justifyContent: 'center', marginTop: 20, flexWrap: 'wrap' }}>
           {['Behaviourism', 'Cognitivism', 'Constructivism', 'Experientialism'].map(t => (
             <span key={t} style={{
               fontSize: 9, letterSpacing: 2, fontWeight: 700,
@@ -62,37 +53,40 @@ export default function HomePage({ onSelectLevel }) {
         </div>
       </div>
 
-      {/* ── Level grid ──────────────────────────────────────────── */}
+      {/* ── Level grid ─────────────────────────────────────────────────── */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))',
-        gap: 20,
-        width: '100%',
-        maxWidth: 980,
+        gap: 20, width: '100%', maxWidth: 980,
       }}>
-        {LEVELS.map(level => (
-          <LevelCard key={level.id} level={level} onSelect={() => onSelectLevel(level)} />
-        ))}
+        {LEVELS.map((level, idx) => {
+          const unlocked = isLevelUnlocked(idx, LEVELS, progress);
+          const stars    = progress[level.id] ?? 0;
+          return (
+            <LevelCard
+              key={level.id}
+              level={level}
+              unlocked={unlocked}
+              stars={stars}
+              onSelect={() => onSelectLevel(level)}
+            />
+          );
+        })}
       </div>
 
-      {/* ── Controls hint ───────────────────────────────────────── */}
-      <div style={{
-        marginTop: 48,
-        display: 'flex', gap: 24, flexWrap: 'wrap', justifyContent: 'center',
-      }}>
+      {/* ── Controls hint ──────────────────────────────────────────────── */}
+      <div style={{ marginTop: 48, display: 'flex', gap: 24, flexWrap: 'wrap', justifyContent: 'center' }}>
         {[
-          { key: '↑ W',    label: 'Accelerate' },
-          { key: '↓ S',    label: 'Reverse'    },
-          { key: '← →',   label: 'Steer'       },
-          { key: 'Space',  label: 'Brake'       },
-          { key: 'R',      label: 'Restart'     },
+          { key: '↑ W',   label: 'Accelerate' },
+          { key: '↓ S',   label: 'Reverse'    },
+          { key: '← →',  label: 'Steer'       },
+          { key: 'Space', label: 'Brake'       },
+          { key: 'R',     label: 'Restart'     },
         ].map(({ key, label }) => (
           <div key={key} style={{ textAlign: 'center' }}>
             <div style={{
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.14)',
-              borderRadius: 6, padding: '4px 10px',
-              fontSize: 11, fontWeight: 700, letterSpacing: 1,
+              background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.14)',
+              borderRadius: 6, padding: '4px 10px', fontSize: 11, fontWeight: 700, letterSpacing: 1,
             }}>{key}</div>
             <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.35)', marginTop: 4, letterSpacing: 1 }}>
               {label.toUpperCase()}
@@ -108,31 +102,34 @@ export default function HomePage({ onSelectLevel }) {
   );
 }
 
-// ── Level card ─────────────────────────────────────────────────────────────
+// ── Level card ────────────────────────────────────────────────────────────────
 
-function LevelCard({ level, onSelect }) {
+function LevelCard({ level, unlocked, stars, onSelect }) {
   const [hovered, setHovered] = React.useState(false);
+  const borderColor = hovered && unlocked ? `${level.color}55` : 'rgba(255,255,255,0.09)';
 
   return (
-    <div
+    <article
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: hovered ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.04)',
-        border: `1px solid ${hovered ? `${level.color}55` : 'rgba(255,255,255,0.09)'}`,
+        background: hovered && unlocked ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.04)',
+        border: `1px solid ${borderColor}`,
         borderRadius: 14,
         padding: '0 0 20px',
-        cursor: 'pointer',
+        cursor: unlocked ? 'pointer' : 'default',
         transition: 'transform 0.15s, background 0.15s, border-color 0.15s, box-shadow 0.15s',
-        transform: hovered ? 'translateY(-3px)' : 'none',
-        boxShadow: hovered ? `0 12px 40px ${level.color}18` : '0 4px 16px rgba(0,0,0,0.3)',
+        transform: hovered && unlocked ? 'translateY(-3px)' : 'none',
+        boxShadow: hovered && unlocked
+          ? `0 12px 40px ${level.color}18`
+          : '0 4px 16px rgba(0,0,0,0.3)',
         position: 'relative',
         overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
+        display: 'flex', flexDirection: 'column',
+        opacity: unlocked ? 1 : 0.55,
       }}
     >
-      {/* Colour accent top bar */}
+      {/* Colour accent bar */}
       <div style={{
         height: 4,
         background: `linear-gradient(90deg, ${level.color}, ${level.color}88)`,
@@ -140,15 +137,14 @@ function LevelCard({ level, onSelect }) {
       }} />
 
       <div style={{ padding: '18px 20px 0' }}>
-        {/* Level badge */}
-        <div style={{
-          fontSize: 9, letterSpacing: 3.5, fontWeight: 800,
-          color: level.color, marginBottom: 6,
-        }}>
-          {level.name.toUpperCase()}
+        {/* Level badge + stars */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <div style={{ fontSize: 9, letterSpacing: 3.5, fontWeight: 800, color: level.color }}>
+            {level.name.toUpperCase()}
+          </div>
+          <Stars earned={stars} color={level.color} />
         </div>
 
-        {/* Title */}
         <div style={{ fontSize: 21, fontWeight: 800, letterSpacing: -0.4, lineHeight: 1.15 }}>
           {level.title}
         </div>
@@ -156,11 +152,7 @@ function LevelCard({ level, onSelect }) {
           {level.subtitle}
         </div>
 
-        {/* Description */}
-        <div style={{
-          fontSize: 12, color: 'rgba(255,255,255,0.62)', marginTop: 12, lineHeight: 1.6,
-          minHeight: 54,
-        }}>
+        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.62)', marginTop: 12, lineHeight: 1.6, minHeight: 54 }}>
           {level.description}
         </div>
 
@@ -169,8 +161,7 @@ function LevelCard({ level, onSelect }) {
           {level.objectives.filter(o => o.id !== 'finish').map(o => (
             <div key={o.id} style={{
               display: 'flex', alignItems: 'center', gap: 7,
-              fontSize: 11, color: 'rgba(255,255,255,0.5)',
-              marginBottom: 5,
+              fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 5,
             }}>
               <span style={{
                 width: 5, height: 5, borderRadius: '50%',
@@ -187,62 +178,80 @@ function LevelCard({ level, onSelect }) {
             <span key={t} style={{
               fontSize: 8, letterSpacing: 1.2, fontWeight: 700,
               padding: '3px 8px', borderRadius: 20,
-              background: `${level.color}18`,
-              border: `1px solid ${level.color}38`,
+              background: `${level.color}18`, border: `1px solid ${level.color}38`,
               color: level.color,
             }}>{t}</span>
           ))}
         </div>
       </div>
 
-      {/* Play button */}
+      {/* Play / Locked button */}
       <div style={{ padding: '16px 20px 0' }}>
-        <button
-          onClick={onSelect}
-          style={{
-            width: '100%',
-            padding: '11px 0',
-            background: hovered ? level.color : `${level.color}cc`,
-            color: level.textColor,
-            border: 'none', borderRadius: 9,
-            fontWeight: 800, fontSize: 13,
-            cursor: 'pointer',
-            letterSpacing: 0.5,
-            fontFamily: 'inherit',
-            transition: 'background 0.15s',
-          }}
-        >
-          Play Level {level.number} →
-        </button>
+        {unlocked ? (
+          <button
+            onClick={onSelect}
+            style={{
+              width: '100%', padding: '11px 0',
+              background: hovered ? level.color : `${level.color}cc`,
+              color: level.textColor,
+              border: 'none', borderRadius: 9,
+              fontWeight: 800, fontSize: 13, cursor: 'pointer',
+              letterSpacing: 0.5, fontFamily: 'inherit',
+              transition: 'background 0.15s',
+            }}
+          >
+            {stars > 0 ? `Play again  ·  ` : `Play Level ${level.number}  →`}
+            {stars > 0 && '★'.repeat(stars) + '☆'.repeat(3 - stars)}
+          </button>
+        ) : (
+          <div style={{
+            width: '100%', padding: '11px 0',
+            background: 'rgba(255,255,255,0.06)',
+            color: 'rgba(255,255,255,0.35)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 9, fontWeight: 700, fontSize: 13,
+            textAlign: 'center', letterSpacing: 0.5,
+          }}>
+            🔒 Complete Level {level.number - 1} first
+          </div>
+        )}
       </div>
+    </article>
+  );
+}
+
+// ── Star display ──────────────────────────────────────────────────────────────
+
+function Stars({ earned, color }) {
+  return (
+    <div style={{ display: 'flex', gap: 2 }}>
+      {[0, 1, 2].map(i => (
+        <svg key={i} width="14" height="14" viewBox="0 0 20 20"
+             fill={i < earned ? color : 'rgba(255,255,255,0.15)'}>
+          <path d="M10 1l2.6 5.6 6.2.7-4.7 4.2 1.3 6.1L10 14.7 4.6 17.6 5.9 11.5 1.2 7.3l6.2-.7z" />
+        </svg>
+      ))}
     </div>
   );
 }
 
-// ── Tiny NZ flag ───────────────────────────────────────────────────────────
+// ── Tiny NZ flag ──────────────────────────────────────────────────────────────
 
 function NZFlag() {
   return (
     <svg width="28" height="16" viewBox="0 0 28 16" style={{ borderRadius: 2 }}>
       <rect width="28" height="16" fill="#00247d" />
-      {/* Union Jack top-left (simplified) */}
       <rect width="14" height="8" fill="#00247d" />
       <line x1="0" y1="0" x2="14" y2="8" stroke="#fff" strokeWidth="2" />
       <line x1="14" y1="0" x2="0" y2="8" stroke="#fff" strokeWidth="2" />
       <line x1="0" y1="0" x2="14" y2="8" stroke="#cc0001" strokeWidth="1" />
       <line x1="14" y1="0" x2="0" y2="8" stroke="#cc0001" strokeWidth="1" />
-      <rect x="6" y="0" width="2" height="8" fill="#fff" />
-      <rect x="0" y="3" width="14" height="2" fill="#fff" />
+      <rect x="6"   y="0" width="2" height="8" fill="#fff" />
+      <rect x="0"   y="3" width="14" height="2" fill="#fff" />
       <rect x="6.5" y="0" width="1" height="8" fill="#cc0001" />
-      <rect x="0" y="3.5" width="14" height="1" fill="#cc0001" />
-      {/* Southern Cross (4 red stars on right) */}
-      {[
-        { cx: 22, cy: 3 },
-        { cx: 25, cy: 6 },
-        { cx: 19, cy: 7 },
-        { cx: 24, cy: 11 },
-      ].map((s, i) => (
-        <g key={i}>
+      <rect x="0"   y="3.5" width="14" height="1" fill="#cc0001" />
+      {[{ cx: 22, cy: 3 }, { cx: 25, cy: 6 }, { cx: 19, cy: 7 }, { cx: 24, cy: 11 }].map((s) => (
+        <g key={`${s.cx}-${s.cy}`}>
           <circle cx={s.cx} cy={s.cy} r="1.6" fill="#fff" />
           <circle cx={s.cx} cy={s.cy} r="0.9" fill="#cc0001" />
         </g>

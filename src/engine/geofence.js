@@ -1,5 +1,5 @@
-// "Where is the car?" queries, all derived from constants.js.
-import { W, ROAD_W, MAIN_Y, SIDE_X, SCHOOL_ZONE } from './constants.js';
+// "Where is the car?" queries — all derived from the active level config.
+import { W, ROAD_W, MAIN_Y } from './constants.js';
 
 export function inSchoolZone(x, schoolZone) {
   if (!schoolZone) return false;
@@ -12,7 +12,7 @@ export function onRoadMain(x, y, worldW = W) {
 
 export function onRoadSide(x, y, sideX) {
   if (!sideX) return false;
-  return Math.abs(x - sideX) <= ROAD_W / 2;  // full height: north + south
+  return Math.abs(x - sideX) <= ROAD_W / 2;
 }
 
 export function onRoad(x, y, g) {
@@ -20,9 +20,7 @@ export function onRoad(x, y, g) {
   const sideX       = g?.level?.config?.sideX;
   const roundaboutX = g?.level?.config?.roundaboutX;
 
-  // Treat the entire roundabout disc as road — the disc (r=80) extends 25 px
-  // beyond the road band (±55), so without this check the car gets stuck in the
-  // visually-grey-but-logically-grass fringe above and below the main road.
+  // Treat the entire roundabout disc as road
   if (roundaboutX) {
     const dx = x - roundaboutX;
     const dy = y - MAIN_Y;
@@ -33,9 +31,9 @@ export function onRoad(x, y, g) {
 }
 
 // In New Zealand we keep left. Heading east on the main road means the
-// left lane is above the centerline.
+// left lane is above the centreline (lower y).
 export function onLeftSide(car) {
-  if (!onRoadMain(car.x, car.y)) return true; // Do not penalise off-main.
+  if (!onRoadMain(car.x, car.y)) return true; // don't penalise off-main
   const facingEast = Math.cos(car.angle) > 0;
   return facingEast ? car.y < MAIN_Y : car.y > MAIN_Y;
 }

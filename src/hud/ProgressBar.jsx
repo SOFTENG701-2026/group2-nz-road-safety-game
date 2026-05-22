@@ -1,15 +1,14 @@
 // Distance bar between START and FINISH with hazard ticks + player dot.
 import { START_X, FINISH_X } from '../engine/constants.js';
-import { MISSION_HAZARDS } from '../engine/hazards.js';
 
 export default function ProgressBar({ carX, level }) {
-  const startX = level?.startX ?? START_X;
+  const startX  = level?.startX  ?? START_X;
   const finishX = level?.finishX ?? FINISH_X;
   const hazards = level?.hazards ?? [];
   const progress = clamp01((carX - startX) / (finishX - startX));
 
-  const destName = level?.id === 'urban' ? 'TAKAPUNA' : 'WELLINGTON';
-  const startName = level?.id === 'urban' ? 'MILFORD' : 'AUCKLAND';
+  const startName = level?.startName ?? 'START';
+  const destName  = level?.destName  ?? 'DEST';
 
   return (
     <div style={{ position: 'absolute', top: 56, left: 16, right: 210 }}>
@@ -28,6 +27,7 @@ export default function ProgressBar({ carX, level }) {
         background: 'rgba(255,255,255,0.08)',
         borderRadius: 2,
       }}>
+        {/* Filled portion */}
         <div style={{
           position: 'absolute', left: 0, top: 0, bottom: 0,
           width: `${progress * 100}%`,
@@ -54,6 +54,7 @@ export default function ProgressBar({ carX, level }) {
           );
         })}
 
+        {/* Player dot */}
         <div style={{
           position: 'absolute',
           left: `${progress * 100}%`,
