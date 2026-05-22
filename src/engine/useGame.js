@@ -13,6 +13,7 @@ export function useGame({ width, height, active, level, difficulty = 'normal' })
   const [, force]      = useReducer((x) => x + 1, 0);
   const prevCoachRef   = useRef(null);
   const audioStarted   = useRef(false);
+  const levelIdRef     = useRef(level?.id);   // track level changes for Next Level
 
   // ── Keyboard input + audio bootstrap ──────────────────────────────────────
   useEffect(() => {
@@ -49,6 +50,13 @@ export function useGame({ width, height, active, level, difficulty = 'normal' })
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    // Reset game state when the level changes (e.g. clicking Next Level)
+    if (levelIdRef.current !== level?.id) {
+      gameRef.current      = createGame(level);
+      prevCoachRef.current = null;
+      levelIdRef.current   = level?.id;
+    }
 
     const dpr = Math.min(2, globalThis.devicePixelRatio || 1);
     canvas.width        = width  * dpr;

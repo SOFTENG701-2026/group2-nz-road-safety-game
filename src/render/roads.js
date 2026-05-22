@@ -1,6 +1,6 @@
 // All road surfaces, lane markings, crossings, school-zone overlay,
 // give-way markings, start and finish lines.
-import { W, H, ROAD_W, MAIN_Y, SIDE_X, SCHOOL_ZONE, PED_X, START_X, FINISH_X } from '../engine/constants.js';
+import { W, H, ROAD_W, MAIN_Y, START_X, FINISH_X } from '../engine/constants.js';
 
 export function drawRoads(ctx, g) {
   const level = g.level;
@@ -20,13 +20,23 @@ export function drawRoads(ctx, g) {
     ctx.fillRect(sideX - ROAD_W / 2, 0, ROAD_W, H);
   }
 
-  // Shoulders
+  // Shoulders — skip through the junction box so no grey line crosses it
   ctx.fillStyle = '#5a5a5e';
-  ctx.fillRect(0, MAIN_Y - ROAD_W / 2 - 3, worldW, 3);
-  ctx.fillRect(0, MAIN_Y + ROAD_W / 2,     worldW, 3);
+  const _hw = ROAD_W / 2; // 55
   if (sideX) {
-    ctx.fillRect(sideX - ROAD_W / 2 - 3, 0, 3, H);
-    ctx.fillRect(sideX + ROAD_W / 2,     0, 3, H);
+    // Main road shoulders — two segments either side of junction
+    ctx.fillRect(0,           MAIN_Y - _hw - 3, sideX - _hw, 3);
+    ctx.fillRect(sideX + _hw, MAIN_Y - _hw - 3, worldW - sideX - _hw, 3);
+    ctx.fillRect(0,           MAIN_Y + _hw,     sideX - _hw, 3);
+    ctx.fillRect(sideX + _hw, MAIN_Y + _hw,     worldW - sideX - _hw, 3);
+    // Side road shoulders — stop at main road edges
+    ctx.fillRect(sideX - _hw - 3, 0,           3, MAIN_Y - _hw);
+    ctx.fillRect(sideX + _hw,     0,           3, MAIN_Y - _hw);
+    ctx.fillRect(sideX - _hw - 3, MAIN_Y + _hw, 3, H - MAIN_Y - _hw);
+    ctx.fillRect(sideX + _hw,     MAIN_Y + _hw, 3, H - MAIN_Y - _hw);
+  } else {
+    ctx.fillRect(0, MAIN_Y - ROAD_W / 2 - 3, worldW, 3);
+    ctx.fillRect(0, MAIN_Y + ROAD_W / 2,     worldW, 3);
   }
 
   // ── School zone / icy road overlay
@@ -34,6 +44,12 @@ export function drawRoads(ctx, g) {
     const isMountain = level?.id === 'mountain';
     ctx.fillStyle = isMountain ? 'rgba(180,220,255,0.28)' : 'rgba(255,200,80,0.18)';
     ctx.fillRect(schoolZone.x1, MAIN_Y - ROAD_W / 2, schoolZone.x2 - schoolZone.x1, ROAD_W);
+
+    // Clip zigzag strictly to the school zone so it can't bleed onto bridge chevrons
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(schoolZone.x1, MAIN_Y - ROAD_W / 2, schoolZone.x2 - schoolZone.x1, ROAD_W);
+    ctx.clip();
     ctx.strokeStyle = isMountain ? '#a8d8ff' : '#f5d56a';
     ctx.lineWidth   = 3;
     ctx.beginPath();
@@ -43,6 +59,7 @@ export function drawRoads(ctx, g) {
       ctx.lineTo(x + 18, MAIN_Y - ROAD_W / 2 + 6);
     }
     ctx.stroke();
+    ctx.restore();
   }
 
   // ── Gravel / unsealed road overlay
@@ -67,14 +84,46 @@ export function drawRoads(ctx, g) {
   // ── Center yellow line
   ctx.strokeStyle = '#f6c945';
   ctx.lineWidth   = 3;
+
+  // Build a sorted list of x-ranges where no centre line should appear:
+  //   • intersection box  → [sideX - lane, sideX + lane]
+  //   • bridge + approach → [bridgeX - 180, bridgeX + 180]  (100 deck + 80 chevrons)
+  const skipRanges = [];
+  if (sideX)   skipRanges.push([sideX - _hw,   sideX + _hw]);
+  if (bridgeX) skipRanges.push([bridgeX - 200, bridgeX + 200]); // stop line to stop line
+  skipRanges.sort((a, b) => a[0] - b[0]);
+
+  let lx = 0;
+  for (const [lo, hi] of skipRanges) {
+    if (lx < lo) drawDashed(ctx, lx, MAIN_Y, lo, MAIN_Y, [22, 16]);
+    lx = Math.max(lx, hi);
+  }
+  if (lx < worldW) drawDashed(ctx, lx, MAIN_Y, worldW, MAIN_Y, [22, 16]);
+
+  // Side-road centre dashes (vertical, skipping the main road junction)
   if (sideX) {
-    drawDashed(ctx, 0,            MAIN_Y, sideX - 80, MAIN_Y, [22, 16]);
-    drawSolid (ctx, sideX - 80,  MAIN_Y, sideX + 80, MAIN_Y);
-    drawDashed(ctx, sideX + 80,  MAIN_Y, worldW,     MAIN_Y, [22, 16]);
-    drawDashed(ctx, sideX, 0,            sideX, MAIN_Y - 80, [18, 14]);  // north arm
-    drawDashed(ctx, sideX, MAIN_Y + 80, sideX, H,           [18, 14]);  // south arm
-  } else {
-    drawDashed(ctx, 0,            MAIN_Y, worldW,     MAIN_Y, [22, 16]);
+    drawDashed(ctx, sideX, 0,            sideX, MAIN_Y - _hw, [18, 14]);
+    drawDashed(ctx, sideX, MAIN_Y + _hw, sideX, H,            [18, 14]);
+  }
+
+  // ── Intersection stop lines — one lane each, not full road width
+  // NZ left-hand traffic: each direction stays in its own half.
+  if (sideX) {
+    ctx.fillStyle = '#fff';
+    const hw = ROAD_W / 2; // half road = 55 px = one lane
+    const lw = 4;
+
+    // Main road — each stop line spans only the approaching lane (half road):
+    // Eastbound (upper lane, y < MAIN_Y) stops at west junction edge
+    ctx.fillRect(sideX - hw - lw, MAIN_Y - hw, lw, hw);
+    // Westbound (lower lane, y > MAIN_Y) stops at east junction edge
+    ctx.fillRect(sideX + hw,      MAIN_Y,      lw, hw);
+
+    // Side road — each stop line spans only the approaching lane:
+    // Southbound (east half, x > sideX) stops at north junction edge
+    ctx.fillRect(sideX,      MAIN_Y - hw - lw, hw, lw);
+    // Northbound (west half, x < sideX) stops at south junction edge
+    ctx.fillRect(sideX - hw, MAIN_Y + hw,      hw, lw);
   }
 
   // ── Pedestrian crossing (zebra)
@@ -100,13 +149,18 @@ export function drawRoads(ctx, g) {
     ctx.fillStyle = '#4e8ab5';
     ctx.fillRect(BL, roadTop, BLen, roadBot - roadTop);
 
-    // Water ripples (semi-circles, two rows)
+    // Water ripples — clipped to the river rectangle so arcs can't bleed outside
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(BL, roadTop, BLen, roadBot - roadTop);
+    ctx.clip();
     ctx.strokeStyle = 'rgba(255,255,255,0.22)';
     ctx.lineWidth = 1;
     for (let rx = BL + 14; rx < BR; rx += 26) {
       ctx.beginPath(); ctx.arc(rx,      MAIN_Y - ROAD_W * 0.34, 6, Math.PI, 0); ctx.stroke();
       ctx.beginPath(); ctx.arc(rx + 13, MAIN_Y + ROAD_W * 0.34, 5, Math.PI, 0); ctx.stroke();
     }
+    ctx.restore();
 
     // ② Steel girder frame (slightly wider/taller than the deck)
     ctx.fillStyle = '#6a6a74';
@@ -129,12 +183,14 @@ export function drawRoads(ctx, g) {
       ctx.beginPath(); ctx.moveTo(px, deckBot);     ctx.lineTo(px, deckBot + 5); ctx.stroke();
     }
 
-    // ⑤ Yellow dashed centre line on the bridge deck
-    ctx.strokeStyle = '#f6c945';
-    ctx.lineWidth = 2;
-    ctx.setLineDash([14, 10]);
-    ctx.beginPath(); ctx.moveTo(BL, MAIN_Y); ctx.lineTo(BR, MAIN_Y); ctx.stroke();
-    ctx.setLineDash([]);
+    // ⑤ Stop lines — placed at the OUTER edge of the approach chevron zone
+    //   (BL-82 / BR+82), so drivers wait before the road narrows.
+    ctx.fillStyle = '#fff';
+    const _bHw = ROAD_W / 2; // 55 px — one lane width
+    // West entry: eastbound traffic (upper/north lane)
+    ctx.fillRect(BL - 100, MAIN_Y - _bHw, 4, _bHw);
+    // East entry: westbound traffic (lower/south lane)
+    ctx.fillRect(BR + 96, MAIN_Y, 4, _bHw);
 
     // ⑥ Approach chevrons on road surface — warn of lane narrowing
     // Painted on the asphalt BEFORE and AFTER the bridge, each side
@@ -159,37 +215,59 @@ export function drawRoads(ctx, g) {
     }
   }
 
-  // ── Roundabout: E/W only (no N/S arms), ring road + clockwise arrows
+  // ── Roundabout: 4-way junction (N/S arms + E/W main road) + clockwise ring
   const roundaboutX = level?.config?.roundaboutX;
   if (roundaboutX) {
     const R_OUT = 80;
-    const R_IN  = 22;   // smaller island so lane traffic (±27.5 from centre) clears it
+    const R_IN  = 22;
     const R_MID = (R_OUT + R_IN) / 2;
+    const hw    = ROAD_W / 2; // 55
 
-    // ① Ring road disc — same grey as main road for seamless E/W junction
+    // ① North and south road arms (drawn before disc so disc covers the junction area)
+    ctx.fillStyle = '#3a3a3e';
+    ctx.fillRect(roundaboutX - hw, 0,           ROAD_W, MAIN_Y - R_OUT); // north arm
+    ctx.fillRect(roundaboutX - hw, MAIN_Y + R_OUT, ROAD_W, H - MAIN_Y - R_OUT); // south arm
+
+    // Arm shoulders
+    ctx.fillStyle = '#5a5a5e';
+    ctx.fillRect(roundaboutX - hw - 3, 0,              3, MAIN_Y - R_OUT);
+    ctx.fillRect(roundaboutX + hw,     0,              3, MAIN_Y - R_OUT);
+    ctx.fillRect(roundaboutX - hw - 3, MAIN_Y + R_OUT, 3, H - MAIN_Y - R_OUT);
+    ctx.fillRect(roundaboutX + hw,     MAIN_Y + R_OUT, 3, H - MAIN_Y - R_OUT);
+
+    // Arm centre dashed lines (yellow)
+    ctx.strokeStyle = '#f6c945';
+    ctx.lineWidth   = 3;
+    drawDashed(ctx, roundaboutX, 0,              roundaboutX, MAIN_Y - R_OUT, [18, 14]);
+    drawDashed(ctx, roundaboutX, MAIN_Y + R_OUT, roundaboutX, H,             [18, 14]);
+
+    // ② Ring road disc
     ctx.fillStyle = '#3a3a3e';
     ctx.beginPath(); ctx.arc(roundaboutX, MAIN_Y, R_OUT, 0, Math.PI * 2); ctx.fill();
 
-    // ② White outer border — full circle
+    // ③ Dashed outer border
     ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 3;
+    ctx.lineWidth   = 3;
+    ctx.setLineDash([14, 8]);
     ctx.beginPath(); ctx.arc(roundaboutX, MAIN_Y, R_OUT, 0, Math.PI * 2); ctx.stroke();
+    ctx.setLineDash([]);
 
-    // ③ Central grass island
+    // ④ Central grass island
     ctx.fillStyle = '#4e7a4e';
     ctx.beginPath(); ctx.arc(roundaboutX, MAIN_Y, R_IN, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = '#b8bcc4';
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth   = 2.5;
     ctx.beginPath(); ctx.arc(roundaboutX, MAIN_Y, R_IN, 0, Math.PI * 2); ctx.stroke();
 
-    // ④ Clockwise arrows on ring road (4 positions show circulation direction)
-    ctx.fillStyle = 'rgba(255,255,255,0.82)';
+    // ⑤ Clockwise direction arrows on the ring road
+    // tx/ty = clockwise tangent direction at each arrow position
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
     for (let i = 0; i < 4; i++) {
       const a  = i * Math.PI / 2;
       const px = roundaboutX + Math.cos(a) * R_MID;
       const py = MAIN_Y      + Math.sin(a) * R_MID;
-      const tx = -Math.sin(a);
-      const ty =  Math.cos(a);
+      const tx = -Math.sin(a); // clockwise tangent x
+      const ty =  Math.cos(a); // clockwise tangent y
       ctx.save();
       ctx.translate(px, py);
       ctx.beginPath();
@@ -200,6 +278,32 @@ export function drawRoads(ctx, g) {
       ctx.fill();
       ctx.restore();
     }
+
+    // ⑥ Give-way lines at each entry (dashed white across approach lane)
+    ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+    ctx.lineWidth   = 3;
+    ctx.setLineDash([8, 6]);
+    // East entry (westbound lane: lower half)
+    ctx.beginPath();
+    ctx.moveTo(roundaboutX + R_OUT, MAIN_Y);
+    ctx.lineTo(roundaboutX + R_OUT, MAIN_Y + hw);
+    ctx.stroke();
+    // West entry (eastbound lane: upper half)
+    ctx.beginPath();
+    ctx.moveTo(roundaboutX - R_OUT, MAIN_Y - hw);
+    ctx.lineTo(roundaboutX - R_OUT, MAIN_Y);
+    ctx.stroke();
+    // North entry (southbound lane: east half)
+    ctx.beginPath();
+    ctx.moveTo(roundaboutX,      MAIN_Y - R_OUT);
+    ctx.lineTo(roundaboutX + hw, MAIN_Y - R_OUT);
+    ctx.stroke();
+    // South entry (northbound lane: west half)
+    ctx.beginPath();
+    ctx.moveTo(roundaboutX - hw, MAIN_Y + R_OUT);
+    ctx.lineTo(roundaboutX,      MAIN_Y + R_OUT);
+    ctx.stroke();
+    ctx.setLineDash([]);
   }
 
   // ── Railway Crossing (Level 3)
