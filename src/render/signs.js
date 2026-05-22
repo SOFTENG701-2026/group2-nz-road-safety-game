@@ -249,7 +249,8 @@ function drawSpeedRoundel(ctx, outer, inner, font, label) {
   ctx.beginPath(); ctx.arc(0, 0, inner, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#1a1a1a';
   ctx.font = font;
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
   ctx.fillText(label, 0, 1);
 }
 

@@ -18,7 +18,7 @@ export default function HomePage({ onSelectLevel, progress }) {
       <div style={{ textAlign: 'center', marginBottom: 36 }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
           <NZFlag />
-          <span style={{ fontSize: 10, letterSpacing: 3.5, color: '#7ec8ff', fontWeight: 700 }}>
+          <span style={{ fontSize: 13, letterSpacing: 3.5, color: '#7ec8ff', fontWeight: 700 }}>
             NZ TRANSPORT AGENCY · WAKA KOTAHI
           </span>
         </div>
@@ -33,7 +33,7 @@ export default function HomePage({ onSelectLevel, progress }) {
         </h1>
 
         <p style={{
-          color: 'rgba(255,255,255,0.5)', marginTop: 12, fontSize: 14,
+          color: 'rgba(255,255,255,0.5)', marginTop: 12, fontSize: 17,
           maxWidth: 500, lineHeight: 1.65,
         }}>
           Learn New Zealand road rules through four interactive driving challenges.
@@ -43,7 +43,7 @@ export default function HomePage({ onSelectLevel, progress }) {
         <div style={{ display: 'flex', gap: 20, justifyContent: 'center', marginTop: 20, flexWrap: 'wrap' }}>
           {['Behaviourism', 'Cognitivism', 'Constructivism', 'Experientialism'].map(t => (
             <span key={t} style={{
-              fontSize: 9, letterSpacing: 2, fontWeight: 700,
+              fontSize: 12, letterSpacing: 2, fontWeight: 700,
               padding: '4px 10px', borderRadius: 20,
               background: 'rgba(126,200,255,0.1)',
               border: '1px solid rgba(126,200,255,0.25)',
@@ -57,7 +57,7 @@ export default function HomePage({ onSelectLevel, progress }) {
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))',
-        gap: 20, width: '100%', maxWidth: 980,
+        gap: 20, width: '100%', maxWidth: 1400,
       }}>
         {LEVELS.map((level, idx) => {
           const unlocked = isLevelUnlocked(idx, LEVELS, progress);
@@ -86,17 +86,17 @@ export default function HomePage({ onSelectLevel, progress }) {
           <div key={key} style={{ textAlign: 'center' }}>
             <div style={{
               background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.14)',
-              borderRadius: 6, padding: '4px 10px', fontSize: 11, fontWeight: 700, letterSpacing: 1,
+              borderRadius: 6, padding: '4px 10px', fontSize: 14, fontWeight: 700, letterSpacing: 1,
             }}>{key}</div>
-            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.35)', marginTop: 4, letterSpacing: 1 }}>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 4, letterSpacing: 1 }}>
               {label.toUpperCase()}
             </div>
           </div>
         ))}
       </div>
 
-      <div style={{ marginTop: 40, fontSize: 10, letterSpacing: 2, color: 'rgba(255,255,255,0.18)' }}>
-        NZ TRANSPORT AGENCY WAKA KOTAHI · DRIVING IN NEW ZEALAND 2024
+      <div style={{ marginTop: 40, fontSize: 13, letterSpacing: 2, color: 'rgba(255,255,255,0.18)' }}>
+        NZ TRANSPORT AGENCY WAKA KOTAHI · DRIVING IN NEW ZEALAND · ROAD SAFETY EDUCATION · SOFTENG 701 Group2 2026
       </div>
     </div>
   );
@@ -139,29 +139,29 @@ function LevelCard({ level, unlocked, stars, onSelect }) {
       <div style={{ padding: '18px 20px 0' }}>
         {/* Level badge + stars */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-          <div style={{ fontSize: 9, letterSpacing: 3.5, fontWeight: 800, color: level.color }}>
+          <div style={{ fontSize: 12, letterSpacing: 3.5, fontWeight: 800, color: level.color }}>
             {level.name.toUpperCase()}
           </div>
           <Stars earned={stars} color={level.color} />
         </div>
 
-        <div style={{ fontSize: 21, fontWeight: 800, letterSpacing: -0.4, lineHeight: 1.15 }}>
+        <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: -0.4, lineHeight: 1.15 }}>
           {level.title}
         </div>
-        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 5, lineHeight: 1.4 }}>
+        <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)', marginTop: 5, lineHeight: 1.4 }}>
           {level.subtitle}
         </div>
 
-        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.62)', marginTop: 12, lineHeight: 1.6, minHeight: 54 }}>
+        <div style={{ fontSize: 15, color: 'rgba(255,255,255,0.82)', marginTop: 12, lineHeight: 1.6, minHeight: '8em' }}>
           {level.description}
         </div>
 
         {/* Objectives preview */}
-        <div style={{ marginTop: 14 }}>
+        <div style={{ marginTop: 14, minHeight: '7em' }}>
           {level.objectives.filter(o => o.id !== 'finish').map(o => (
             <div key={o.id} style={{
               display: 'flex', alignItems: 'center', gap: 7,
-              fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 5,
+              fontSize: 14, color: 'rgba(255,255,255,0.5)', marginBottom: 5,
             }}>
               <span style={{
                 width: 5, height: 5, borderRadius: '50%',
@@ -176,7 +176,7 @@ function LevelCard({ level, unlocked, stars, onSelect }) {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 14 }}>
           {level.themes.map(t => (
             <span key={t} style={{
-              fontSize: 8, letterSpacing: 1.2, fontWeight: 700,
+              fontSize: 12, letterSpacing: 1.2, fontWeight: 700,
               padding: '3px 8px', borderRadius: 20,
               background: `${level.color}18`, border: `1px solid ${level.color}38`,
               color: level.color,
@@ -195,7 +195,7 @@ function LevelCard({ level, unlocked, stars, onSelect }) {
               background: hovered ? level.color : `${level.color}cc`,
               color: level.textColor,
               border: 'none', borderRadius: 9,
-              fontWeight: 800, fontSize: 13, cursor: 'pointer',
+              fontWeight: 800, fontSize: 16, cursor: 'pointer',
               letterSpacing: 0.5, fontFamily: 'inherit',
               transition: 'background 0.15s',
             }}
@@ -209,7 +209,7 @@ function LevelCard({ level, unlocked, stars, onSelect }) {
             background: 'rgba(255,255,255,0.06)',
             color: 'rgba(255,255,255,0.35)',
             border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 9, fontWeight: 700, fontSize: 13,
+            borderRadius: 9, fontWeight: 700, fontSize: 16,
             textAlign: 'center', letterSpacing: 0.5,
           }}>
             🔒 Complete Level {level.number - 1} first
