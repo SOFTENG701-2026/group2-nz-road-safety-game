@@ -336,8 +336,8 @@ function drawRoundaboutWarning(ctx) {
   ctx.strokeRect(-15, -15, 30, 30);
   ctx.restore();
 
-  const R   = 8;              // arc radius
-  const gap = 0.28;           // gap between each arrow (radians)
+  const R   = 8.5;              // arc radius
+  const gap = 0.38;           // gap between each arrow (radians)
   const span = (2 * Math.PI / 3) - gap * 2; // arc sweep per arrow
 
   ctx.strokeStyle = '#1a1a1a';
@@ -346,7 +346,7 @@ function drawRoundaboutWarning(ctx) {
   ctx.fillStyle   = '#1a1a1a';
 
   for (let i = 0; i < 3; i++) {
-    const startA = -Math.PI / 2 + i * (2 * Math.PI / 3) + gap;
+    const startA = i * (2 * Math.PI / 3) - gap;
     const endA   = startA + span;
 
     // Curved arc
@@ -367,11 +367,7 @@ function drawRoundaboutWarning(ctx) {
     ctx.fill();
   }
 
-  // Central island
-  ctx.beginPath();
-  ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
-  ctx.fill();
-
+  ctx.translate(0, 5);
   drawPole(ctx);
 }
 
