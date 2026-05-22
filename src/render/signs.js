@@ -416,6 +416,8 @@ function drawSlipperySurface(ctx) {
 }
 
 // Loose chippings / gravel road warning — yellow diamond, two cars, flying stones.
+// Loose chippings — two cars facing each other, flying stones in between,
+// impact starburst where stones hit the right car. Matches NZ reference sign.
 function drawLooseChippings(ctx) {
   // Yellow diamond
   ctx.save();
@@ -429,33 +431,37 @@ function drawLooseChippings(ctx) {
 
   ctx.fillStyle = '#1a1a1a';
 
-  // Left car (driving right)
-  ctx.fillRect(-13, -1, 8, 4);   // body
-  ctx.fillRect(-11, -5, 6, 5);   // cabin
-  ctx.beginPath(); ctx.arc(-11, 3, 1.5, 0, Math.PI * 2); ctx.fill(); // front wheel
-  ctx.beginPath(); ctx.arc(-7,  3, 1.5, 0, Math.PI * 2); ctx.fill(); // rear wheel
+  // ── Left car (facing right) ────────────────────────────────────
+  ctx.fillRect(-14, 0, 10, 5);   // body
+  ctx.fillRect(-12, -4, 7, 5);   // cabin / roof
+  ctx.beginPath(); ctx.arc(-11, 5, 2, 0, Math.PI * 2); ctx.fill(); // front wheel
+  ctx.beginPath(); ctx.arc( -6, 5, 2, 0, Math.PI * 2); ctx.fill(); // rear wheel
 
-  // Right car (driving left, slightly offset)
-  ctx.fillRect(5, -1, 8, 4);
-  ctx.fillRect(5, -5, 6, 5);
-  ctx.beginPath(); ctx.arc(7,  3, 1.5, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(11, 3, 1.5, 0, Math.PI * 2); ctx.fill();
+  // ── Right car (facing left) ────────────────────────────────────
+  ctx.fillRect(4, 0, 10, 5);     // body
+  ctx.fillRect(5, -4, 7, 5);     // cabin / roof
+  ctx.beginPath(); ctx.arc( 6, 5, 2, 0, Math.PI * 2); ctx.fill(); // front wheel
+  ctx.beginPath(); ctx.arc(11, 5, 2, 0, Math.PI * 2); ctx.fill(); // rear wheel
 
-  // Flying chips/stones between the cars
-  [[-3,-7,2.5], [0,-4,2], [2,-9,2], [-1,-11,1.5]].forEach(([x, y, r]) => {
-    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
-  });
+  // ── Flying stones between the cars ────────────────────────────
+  ctx.beginPath(); ctx.arc(-1,  -8, 2.5, 0, Math.PI * 2); ctx.fill(); // large
+  ctx.beginPath(); ctx.arc( 2,  -5, 1.5, 0, Math.PI * 2); ctx.fill(); // medium
+  ctx.beginPath(); ctx.arc(-3,  -5, 1.5, 0, Math.PI * 2); ctx.fill(); // medium
+  ctx.beginPath(); ctx.arc( 1, -11, 1.2, 0, Math.PI * 2); ctx.fill(); // small
 
-  // Impact starburst
+  // ── Impact starburst (upper-right, where stones hit right car) ─
   ctx.strokeStyle = '#1a1a1a';
-  ctx.lineWidth   = 1;
-  for (let a = 0; a < 5; a++) {
-    const angle = (a / 5) * Math.PI * 2;
+  ctx.lineWidth = 1.3;
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
     ctx.beginPath();
-    ctx.moveTo(Math.cos(angle) * 2, -6 + Math.sin(angle) * 2);
-    ctx.lineTo(Math.cos(angle) * 5, -6 + Math.sin(angle) * 5);
+    ctx.moveTo(6 + Math.cos(a) * 2, -6 + Math.sin(a) * 2);
+    ctx.lineTo(6 + Math.cos(a) * 6, -6 + Math.sin(a) * 6);
     ctx.stroke();
   }
+  // Centre dot of starburst
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath(); ctx.arc(6, -6, 1.5, 0, Math.PI * 2); ctx.fill();
 
   drawPole(ctx);
 }

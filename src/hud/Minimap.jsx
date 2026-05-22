@@ -3,8 +3,8 @@
 import { useTrail } from './useTrail.js';
 import { W, H, MAIN_Y, START_X, FINISH_X } from '../engine/constants.js';
 
-const MM_W = 180;
-const MM_H = 96;
+const MM_W = 240;
+const MM_H = 130;
 
 export default function Minimap({ game }) {
   const level      = game.level;
@@ -116,18 +116,6 @@ export default function Minimap({ game }) {
                 fill="#f5b81d" fontSize="7" fontWeight="700" textAnchor="middle" letterSpacing="0.5">
             END
           </text>
-
-          {/* Side-road NPC */}
-          {game.npc.state !== 'done' && (
-            <rect x={game.npc.x * sx - 2} y={game.npc.y * sy - 1.5}
-                  width="4" height="3" fill="#3b6ec8" rx="0.5" />
-          )}
-
-          {/* Ambient NPCs */}
-          {(game.ambientNpcs ?? []).map(npc => (
-            <rect key={npc.id} x={npc.x * sx - 2} y={npc.y * sy - 1.5}
-                  width="3" height="2.5" fill={npc.color} rx="0.4" opacity="0.8" />
-          ))}
 
           {/* Player ping */}
           <circle cx={game.car.x * sx} cy={game.car.y * sy} r="10" fill="url(#mmPing)">
