@@ -14,3 +14,16 @@
   0%, 100% { opacity: 1;   }
   50%      { opacity: 0.3; }
 }
+
+/* Speed panel flashes red when the car is over the speed limit */
+@keyframes mmSpeedFlash {
+  0%, 100% { box-shadow: 0 0 0   0   rgba(255, 80, 60, 0),    0 8px 20px rgba(0,0,0,0.4); }
+  50%      { box-shadow: 0 0 20px 4px rgba(255, 80, 60, 0.55), 0 8px 20px rgba(0,0,0,0.4); }
+}
+
+/* Objective item pops green / red when it changes state */
+@keyframes mmObjectivePop {
+  0%   { transform: scale(1);    }
+  40%  { transform: scale(1.12); }
+  100% { transform: scale(1);    }
+}

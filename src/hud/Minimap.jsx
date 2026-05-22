@@ -1,28 +1,29 @@
-// Tactical overhead minimap with grid, roads, hazards, trail, and
-// a pulsing player ping.
+// Tactical overhead minimap — top-right, 180×96 px.
+// Shows roads, hazard zones, trail, ambient NPCs, and player ping.
 import { useTrail } from './useTrail.js';
-import {
-  W, H, MAIN_Y, SIDE_X,
-  SCHOOL_ZONE, PED_X, START_X, FINISH_X,
-} from '../engine/constants.js';
+import { W, H, MAIN_Y, START_X, FINISH_X } from '../engine/constants.js';
 
 const MM_W = 180;
 const MM_H = 96;
 
 export default function Minimap({ game }) {
-  const level = game.level;
-  const worldW = level?.worldWidth ?? W;
-  const trail = useTrail(game);
-  const sx = MM_W / worldW;
-  const sy = MM_H / H;
+  const level      = game.level;
+  const worldW     = level?.worldWidth ?? W;
+  const trail      = useTrail(game);
+  const sx         = MM_W / worldW;
+  const sy         = MM_H / H;
   const headingDeg = (game.car.angle * 180) / Math.PI;
 
-  const schoolZone = level?.config?.schoolZone;
-  const pedX = level?.config?.pedX;
-  const sideX = level?.config?.sideX;
-  const bridgeX = level?.config?.bridgeX;
-  const startX = level?.startX ?? START_X;
-  const finishX = level?.finishX ?? FINISH_X;
+  const cfg         = level?.config ?? {};
+  const schoolZone  = cfg.schoolZone;
+  const gravelZone  = cfg.gravelZone;
+  const pedX        = cfg.pedX;
+  const sideX       = cfg.sideX;
+  const bridgeX     = cfg.bridgeX;
+  const roundaboutX = cfg.roundaboutX;
+  const railX       = cfg.railX;
+  const startX      = level?.startX  ?? START_X;
+  const finishX     = level?.finishX ?? FINISH_X;
 
   return (
     <div style={{
@@ -44,39 +45,62 @@ export default function Minimap({ game }) {
           {/* Roads */}
           <rect x="0" y={MAIN_Y * sy - 5} width={MM_W} height="10" fill="#2a3548" />
           {sideX && (
-            <rect x={sideX * sx - 4} y={MAIN_Y * sy} width="8" height={MM_H - MAIN_Y * sy} fill="#2a3548" />
+            <rect x={sideX * sx - 4} y="0" width="8" height={MM_H} fill="#2a3548" />
           )}
           <line x1="0" y1={MAIN_Y * sy} x2={MM_W} y2={MAIN_Y * sy}
                 stroke="#f6c945" strokeWidth="0.6" strokeDasharray="3 3" opacity="0.6" />
 
-          {/* School zone overlay */}
+          {/* School / icy zone */}
           {schoolZone && (
             <rect
-              x={schoolZone.x1 * sx}
-              y={MAIN_Y * sy - 5}
-              width={(schoolZone.x2 - schoolZone.x1) * sx}
-              height="10"
-              fill="rgba(245,184,29,0.35)"
+              x={schoolZone.x1 * sx} y={MAIN_Y * sy - 5}
+              width={(schoolZone.x2 - schoolZone.x1) * sx} height="10"
+              fill={level?.id === 'mountain' ? 'rgba(160,220,255,0.4)' : 'rgba(245,184,29,0.35)'}
             />
           )}
-          {/* Ped crossing */}
+
+          {/* Gravel zone */}
+          {gravelZone && (
+            <rect
+              x={gravelZone.x1 * sx} y={MAIN_Y * sy - 5}
+              width={(gravelZone.x2 - gravelZone.x1) * sx} height="10"
+              fill="rgba(196,163,90,0.45)"
+            />
+          )}
+
+          {/* Pedestrian crossing */}
           {pedX && (
             <rect x={pedX * sx - 1.5} y={MAIN_Y * sy - 5} width="3" height="10" fill="#fff" />
           )}
-          {/* Give-way diamond */}
-          {sideX && (
-            <polygon
-              points={`${sideX*sx},${MAIN_Y*sy+12} ${sideX*sx+5},${MAIN_Y*sy+17} ${sideX*sx},${MAIN_Y*sy+22} ${sideX*sx-5},${MAIN_Y*sy+17}`}
-              fill="rgba(126,200,255,0.5)" stroke="#7ec8ff" strokeWidth="0.7"
-            />
+
+          {/* Roundabout */}
+          {roundaboutX && (
+            <circle cx={roundaboutX * sx} cy={MAIN_Y * sy} r="7"
+                    fill="none" stroke="#a78bfa" strokeWidth="1.5" opacity="0.8" />
+          )}
+
+          {/* Railway crossing */}
+          {railX && (
+            <line x1={railX * sx} y1={MAIN_Y * sy - 8}
+                  x2={railX * sx} y2={MAIN_Y * sy + 8}
+                  stroke="#ff6b6b" strokeWidth="2" />
           )}
 
           {/* Bridge */}
           {bridgeX && (
-            <rect x={bridgeX * sx - 10} y={MAIN_Y * sy - 6} width="20" height="12" fill="#5a5a5e" stroke="#fff" strokeWidth="0.5" />
+            <rect x={bridgeX * sx - 8} y={MAIN_Y * sy - 5} width="16" height="10"
+                  fill="#4e8ab5" stroke="#7ec8ff" strokeWidth="0.7" />
           )}
 
-          {/* Trail */}
+          {/* Give-way diamond at intersection */}
+          {sideX && (
+            <polygon
+              points={`${sideX*sx},${MAIN_Y*sy+10} ${sideX*sx+4},${MAIN_Y*sy+14} ${sideX*sx},${MAIN_Y*sy+18} ${sideX*sx-4},${MAIN_Y*sy+14}`}
+              fill="rgba(126,200,255,0.5)" stroke="#7ec8ff" strokeWidth="0.7"
+            />
+          )}
+
+          {/* Player trail */}
           {trail.length > 1 && (
             <polyline
               fill="none" stroke="#d83a2e" strokeWidth="1.2" strokeOpacity="0.55"
@@ -85,21 +109,29 @@ export default function Minimap({ game }) {
             />
           )}
 
-          {/* Waypoints */}
+          {/* Start / Finish */}
           <circle cx={startX  * sx} cy={MAIN_Y * sy} r="3" fill="#7ce69a" stroke="#0a0d12" strokeWidth="1" />
           <circle cx={finishX * sx} cy={MAIN_Y * sy} r="4" fill="#f5b81d" stroke="#0a0d12" strokeWidth="1" />
-          <text x={finishX * sx} y={MAIN_Y * sy - 7} fill="#f5b81d"
-                fontSize="7" fontWeight="700" textAnchor="middle" letterSpacing="0.5">
+          <text x={finishX * sx} y={MAIN_Y * sy - 7}
+                fill="#f5b81d" fontSize="7" fontWeight="700" textAnchor="middle" letterSpacing="0.5">
             END
           </text>
 
-          {/* NPC car */}
-          <rect x={game.npc.x * sx - 2} y={game.npc.y * sy - 1.5}
-                width="4" height="3" fill="#3b6ec8" rx="0.5" />
+          {/* Side-road NPC */}
+          {game.npc.state !== 'done' && (
+            <rect x={game.npc.x * sx - 2} y={game.npc.y * sy - 1.5}
+                  width="4" height="3" fill="#3b6ec8" rx="0.5" />
+          )}
+
+          {/* Ambient NPCs */}
+          {(game.ambientNpcs ?? []).map(npc => (
+            <rect key={npc.id} x={npc.x * sx - 2} y={npc.y * sy - 1.5}
+                  width="3" height="2.5" fill={npc.color} rx="0.4" opacity="0.8" />
+          ))}
 
           {/* Player ping */}
           <circle cx={game.car.x * sx} cy={game.car.y * sy} r="10" fill="url(#mmPing)">
-            <animate attributeName="r"       values="6;14;6"   dur="1.8s" repeatCount="indefinite" />
+            <animate attributeName="r"       values="6;14;6"    dur="1.8s" repeatCount="indefinite" />
             <animate attributeName="opacity" values="0.8;0;0.8" dur="1.8s" repeatCount="indefinite" />
           </circle>
           <g transform={`translate(${game.car.x * sx},${game.car.y * sy}) rotate(${headingDeg})`}>
@@ -169,7 +201,7 @@ function Coords() {
       color: 'rgba(255,255,255,0.45)', fontSize: 8,
       fontVariantNumeric: 'tabular-nums', letterSpacing: 0.5,
     }}>
-      36 47 S - 174 45 E
+      36°47′S · 174°45′E
     </div>
   );
 }

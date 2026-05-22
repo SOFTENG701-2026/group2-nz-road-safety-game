@@ -1,79 +1,105 @@
-// Bottom-left speed + limit module. Limit roundel pulses when in a 30 zone.
+// Speed instrument panel — dark tactical style, bottom-left.
+// Large numbers, colour-coded limit roundel, red panel + glow when over limit.
 import { inSchoolZone } from '../engine/geofence.js';
 import { pxToKmh } from '../engine/units.js';
 
+function getActiveLimit(car, level) {
+  const cfg = level?.config ?? {};
+  if (cfg.schoolZone && inSchoolZone(car.x, cfg.schoolZone)) return 30;
+  if (cfg.gravelZone && car.x >= cfg.gravelZone.x1 && car.x <= cfg.gravelZone.x2) return 60;
+  return level?.speedLimit ?? 50;
+}
+
 export default function SpeedPanel({ car, level }) {
-  const kmh    = pxToKmh(Math.abs(car.speed));
-  const cfg    = level?.config ?? {};
+  const kmh   = Math.round(pxToKmh(Math.abs(car.speed)));
+  const limit  = getActiveLimit(car, level);
+  const over   = kmh > limit;
 
-  const inSchool  = cfg.schoolZone ? inSchoolZone(car.x, cfg.schoolZone) : false;
-  const inGravel  = cfg.gravelZone
-    ? (car.x >= cfg.gravelZone.x1 && car.x <= cfg.gravelZone.x2)
-    : false;
-
-  const zoneLimit = inSchool ? 30 : inGravel ? 60 : null;
-  const limit     = zoneLimit ?? (level?.speedLimit ?? 50);
-  const over  = kmh > limit;
+  const barScale = limit / 0.65;
+  const barFill  = Math.min(100, (kmh / barScale) * 100);
+  const limitPct = Math.min(100, (limit / barScale) * 100);
 
   return (
     <div style={{
       position: 'absolute', bottom: 14, left: 16,
-      background: 'rgba(14,18,26,0.92)',
-      border: '1px solid rgba(255,255,255,0.08)',
-      borderRadius: 6,
-      padding: '8px 14px',
+      background: over ? 'rgba(170,18,12,0.97)' : 'rgba(8,12,22,0.97)',
+      border: `2px solid ${over ? 'rgba(255,88,68,0.95)' : 'rgba(255,255,255,0.11)'}`,
+      borderRadius: 12,
+      padding: '14px 20px 12px',
       color: '#fff',
-      display: 'flex', alignItems: 'center', gap: 14,
-      boxShadow: '0 8px 20px rgba(0,0,0,0.4)',
-      backdropFilter: 'blur(8px)',
+      display: 'flex', flexDirection: 'column', gap: 10,
+      boxShadow: over
+        ? '0 0 36px rgba(255,48,28,0.7), 0 12px 32px rgba(0,0,0,0.6)'
+        : '0 8px 28px rgba(0,0,0,0.55)',
+      backdropFilter: 'blur(14px)',
+      animation: over ? 'mmSpeedFlash 0.65s ease-in-out infinite' : 'none',
+      transition: 'background 0.25s, border-color 0.25s, box-shadow 0.25s',
+      minWidth: 190,
     }}>
-      <Speed kmh={kmh} over={over} />
-      <div style={{ width: 1, height: 36, background: 'rgba(255,255,255,0.1)' }} />
-      <LimitRoundel limit={limit} />
-    </div>
-  );
-}
+      {/* Speed + limit roundel */}
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 14 }}>
+        <div>
+          <div style={{
+            fontSize: 10, letterSpacing: 2.5, fontWeight: 800, marginBottom: 4,
+            color: over ? '#ffbbbb' : 'rgba(255,255,255,0.45)',
+          }}>
+            {over ? '⚠  OVER LIMIT' : 'SPEED'}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+            <span style={{
+              fontSize: 58, fontWeight: 900, lineHeight: 1, letterSpacing: -3,
+              color: over ? '#ffe8e4' : '#fff',
+              fontVariantNumeric: 'tabular-nums',
+              transition: 'color 0.15s',
+            }}>
+              {kmh}
+            </span>
+            <span style={{ fontSize: 15, fontWeight: 600, color: 'rgba(255,255,255,0.55)', marginBottom: 6 }}>
+              km/h
+            </span>
+          </div>
+        </div>
 
-function Speed({ kmh, over }) {
-  return (
-    <div>
-      <div style={{ fontSize: 8, letterSpacing: 1.5, color: 'rgba(255,255,255,0.45)' }}>SPEED</div>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-        <span style={{
-          fontSize: 26, fontWeight: 800, lineHeight: 1,
-          color: over ? '#ff7a6a' : '#fff',
-          fontVariantNumeric: 'tabular-nums',
-          transition: 'color 0.15s',
-        }}>{kmh}</span>
-        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>km/h</span>
+        <div style={{ textAlign: 'center', paddingBottom: 2 }}>
+          <div style={{
+            fontSize: 10, letterSpacing: 2, fontWeight: 700, marginBottom: 6,
+            color: 'rgba(255,255,255,0.45)',
+          }}>
+            LIMIT
+          </div>
+          <div style={{
+            width: 58, height: 58, borderRadius: 29,
+            background: '#fff',
+            border: `5px solid ${over ? '#ff5533' : '#c0282a'}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontWeight: 900, fontSize: 22, color: '#1a1a1a',
+            boxShadow: over ? '0 0 14px rgba(255,80,48,0.9)' : 'none',
+            animation: limit === 30 && !over ? 'mmLimitPulse 1.5s ease-in-out infinite' : 'none',
+            transition: 'box-shadow 0.2s, border-color 0.2s',
+          }}>
+            {limit}
+          </div>
+        </div>
       </div>
-      <div style={{
-        width: 60, height: 2, marginTop: 4,
-        background: 'rgba(255,255,255,0.1)',
-        borderRadius: 1,
-      }}>
+
+      {/* Speed bar with limit tick */}
+      <div style={{ position: 'relative', height: 6, background: 'rgba(255,255,255,0.1)', borderRadius: 3 }}>
         <div style={{
-          width: `${Math.min(100, (kmh / 150) * 100)}%`,
-          height: '100%', borderRadius: 1,
-          background: over ? '#ff7a6a' : '#7ce69a',
-          transition: 'width 0.15s',
+          position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 3,
+          width: `${barFill}%`,
+          background: over
+            ? `linear-gradient(90deg, #ff7760 ${limitPct}%, #ff2800)`
+            : '#7ce69a',
+          transition: 'width 0.12s',
+        }} />
+        <div style={{
+          position: 'absolute',
+          left: `${limitPct}%`,
+          top: -3, width: 2, height: 12, borderRadius: 1,
+          transform: 'translateX(-1px)',
+          background: over ? 'rgba(255,220,210,0.9)' : '#f5b81d',
         }} />
       </div>
-    </div>
-  );
-}
-
-function LimitRoundel({ limit }) {
-  return (
-    <div style={{ textAlign: 'center' }}>
-      <div style={{ fontSize: 8, letterSpacing: 1.5, color: 'rgba(255,255,255,0.45)', marginBottom: 2 }}>LIMIT</div>
-      <div style={{
-        width: 36, height: 36, borderRadius: 18,
-        background: '#fff', border: '3px solid #c0282a',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontWeight: 800, fontSize: 13, color: '#1a1a1a',
-        animation: limit === 30 ? 'mmLimitPulse 1.5s ease-in-out infinite' : 'none',
-      }}>{limit}</div>
     </div>
   );
 }
