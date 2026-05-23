@@ -273,11 +273,17 @@ function checkTrafficCollisions(g) {
     g.keys.right = false;
     g.keys.brake = false;
     g.flags[vehicle.flag] = true;
-    logEvent(
-      g,
-      vehicle.kind === 'roundabout' ? 'Hit roundabout traffic' : 'Hit side-road traffic',
-      -35,
-    );
+    let label = 'Hit side-road traffic';
+    let coachId = 'trafficCollision';
+    if (vehicle.kind === 'roundabout') {
+      label = 'Hit roundabout traffic';
+      coachId = 'roundaboutGiveWayFail';
+    } else if (vehicle.kind === 'main') {
+      label = 'Head-on collision';
+      coachId = 'trafficCollision';
+    }
+
+    logEvent(g, label, -35);
     g.demerits += 25;
 
     const obj = g.objectives.find(o => o.id === vehicle.objectiveId);
@@ -286,7 +292,7 @@ function checkTrafficCollisions(g) {
       obj.fail = true;
     }
 
-    setCoach(g, vehicle.kind === 'roundabout' ? 'roundaboutGiveWayFail' : 'trafficCollision');
+    setCoach(g, coachId);
     return true;
   }
 

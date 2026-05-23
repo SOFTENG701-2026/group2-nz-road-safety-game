@@ -1,16 +1,17 @@
-import { ROAD_W, MAIN_Y } from './constants.js';
+import { ROAD_W, MAIN_Y, H } from './constants.js';
 
 const PLAYER_FRONT = 19;
 const TRIGGER_GAP = 12;
 const TRAFFIC_BLUE = '#1f74e8';
 
 const INTERSECTION_SPEED = 68;
-const INTERSECTION_START_Y = MAIN_Y - ROAD_W / 2 - 30;
-const INTERSECTION_END_Y = MAIN_Y + ROAD_W / 2 + 90;
+const MAIN_ROAD_SPEED = 85;
+const LANE_OFFSET = ROAD_W / 4;
 
 const ROUNDABOUT_OUTER_RADIUS = 80;
 const ROUNDABOUT_INNER_RADIUS = 22;
 const ROUNDABOUT_LANE_RADIUS = (ROUNDABOUT_OUTER_RADIUS + ROUNDABOUT_INNER_RADIUS) / 2;
+const ROUNDABOUT_APPROACH_DURATION = 1.5;
 const ROUNDABOUT_ENTRY_DURATION = 0.65;
 const ROUNDABOUT_ARC_DURATION = 3.4;
 const ROUNDABOUT_EXIT_DURATION = 1.15;
@@ -24,39 +25,180 @@ const CAR_HALF_LENGTH = 19;
 const CAR_HALF_WIDTH = 10;
 
 export function createIntersectionTraffic(level) {
-  const sideX = level?.config?.sideX;
-  return sideX ? [{ x: sideX, active: false, t: 0 }] : [];
+  return [];
 }
 
 export function createRoundaboutTraffic(level) {
   const roundaboutX = level?.config?.roundaboutX;
-  return roundaboutX ? [{ x: roundaboutX, active: false, done: false, t: 0 }] : [];
+  if (!roundaboutX) return [];
+  const count = level?.config?.continuousTraffic ? 2 : 1;
+  return Array.from({ length: count }, (_, i) => ({
+    x: roundaboutX,
+    active: false,
+    done: false,
+    t: 0,
+    cooldown: i * 4.0,
+  }));
+}
+
+export function createMainRoadTraffic(level) {
+  if (!level?.config?.continuousTraffic) return [];
+  const count = 3;
+  return Array.from({ length: count }, (_, i) => ({
+    active: false,
+    t: 0,
+    cooldown: i * 5.0,
+    speed: MAIN_ROAD_SPEED,
+  }));
+}
+
+function getStraightPath(from, sideX, mainY, worldW) {
+  const L = LANE_OFFSET;
+  const entryDist = 100;
+  const exitDist = 100;
+  const points = [];
+
+  if (from === 'N') {
+    points.push({ x: sideX + L, y: -entryDist });
+    points.push({ x: sideX + L, y: H + exitDist });
+  } else if (from === 'S') {
+    points.push({ x: sideX - L, y: H + entryDist });
+    points.push({ x: sideX - L, y: -exitDist });
+  } else if (from === 'E') {
+    points.push({ x: worldW + entryDist, y: mainY + L });
+    points.push({ x: -exitDist, y: mainY + L });
+  }
+  return points;
 }
 
 export function stepIntersectionTraffic(g, dt) {
-  const traffic = g.intersectionTraffic ?? (g.intersectionTraffic = createIntersectionTraffic(g.level));
+  const traffic = g.intersectionTraffic ?? (g.intersectionTraffic = []);
   const roundaboutTraffic = g.roundaboutTraffic ?? (g.roundaboutTraffic = createRoundaboutTraffic(g.level));
+  const mainTraffic = g.mainRoadTraffic ?? (g.mainRoadTraffic = createMainRoadTraffic(g.level));
+  const sideX = g.level?.config?.sideX;
+  const worldWidth = g.level?.worldWidth ?? 1600;
 
-  for (const vehicle of traffic) {
-    if (!vehicle.active && playerIsEnteringIntersection(g.car, vehicle.x)) {
-      vehicle.active = true;
-      vehicle.t = 0;
+  // 1. Spawn logic for intersection (Straight only)
+  if (sideX && g.level?.config?.continuousTraffic && traffic.length < 4) {
+    const directions = ['N', 'S', 'E']; // No 'W' to keep player lane clear
+    const from = directions[Math.floor(Math.random() * directions.length)];
+    const path = getStraightPath(from, sideX, MAIN_Y, worldWidth);
+    const spawnPose = path[0];
+    
+    const allPoses = getTrafficVehiclePoses(g);
+    const isClear = !allPoses.some(p => Math.hypot(p.x - spawnPose.x, p.y - spawnPose.y) < 160);
+
+    if (isClear) {
+      traffic.push({
+        from,
+        path,
+        t: 0,
+        speed: INTERSECTION_SPEED * (0.85 + Math.random() * 0.3),
+        active: true,
+        started: false,
+      });
     }
-
-    if (vehicle.active) vehicle.t += dt;
   }
 
+  // 2. Step intersection NPCs
+  const allPoses = getTrafficVehiclePoses(g);
+
+  for (let i = traffic.length - 1; i >= 0; i--) {
+    const npc = traffic[i];
+    const pose = getIntersectionVehiclePose(npc);
+    if (!pose) {
+      traffic.splice(i, 1);
+      continue;
+    }
+
+    let currentSpeed = npc.speed;
+    const distToCenter = Math.hypot(pose.x - sideX, pose.y - MAIN_Y);
+    
+    // Commit to crossing once near enough to the center
+    if (!npc.started && distToCenter < ROAD_W * 0.5) {
+      npc.started = true;
+    }
+
+    // A. Keep Distance / Collision Avoidance
+    const sensorDist = 70;
+    const sensorX = pose.x + Math.cos(pose.angle) * sensorDist;
+    const sensorY = pose.y + Math.sin(pose.angle) * sensorDist;
+    
+    const someoneAhead = allPoses.some(other => {
+      // Don't detect self or cars very close to center if we are already crossing
+      if (Math.hypot(other.x - pose.x, other.y - pose.y) < 20) return false;
+      return Math.hypot(other.x - sensorX, other.y - sensorY) < 55;
+    });
+
+    // B. Intersection Yielding (Give way to player from right)
+    // Only yield if at entry and haven't started crossing yet
+    const isAtEntry = !npc.started && distToCenter < ROAD_W * 1.3 && distToCenter > ROAD_W * 0.45;
+    
+    let shouldYield = false;
+    if (isAtEntry) {
+      const player = g.car;
+      // N lets W (player) pass
+      if (npc.from === 'N') {
+        if (player.x < sideX && player.x > sideX - 280 && Math.abs(player.y - (MAIN_Y - LANE_OFFSET)) < 50) shouldYield = true;
+      } 
+      // E lets N pass (but player is at W, so E lets W pass if they are close)
+      else if (npc.from === 'E') {
+        if (player.x < sideX && player.x > sideX - 150 && Math.abs(player.y - (MAIN_Y - LANE_OFFSET)) < 50) shouldYield = true;
+      }
+    }
+
+    if (someoneAhead || shouldYield) {
+      currentSpeed = 0;
+    }
+
+    npc.t += currentSpeed * dt;
+  }
+
+  // 3. Roundabout stepping (original logic)
   for (const vehicle of roundaboutTraffic) {
-    if (!vehicle.active && !vehicle.done && playerIsApproachingRoundabout(g.car, vehicle.x)) {
-      vehicle.active = true;
-      vehicle.t = 0;
+    if (!vehicle.active && !vehicle.done) {
+      if (g.level?.config?.continuousTraffic) {
+        vehicle.cooldown = (vehicle.cooldown ?? 0) - dt;
+        if (vehicle.cooldown <= 0) {
+          vehicle.active = true;
+          vehicle.t = 0;
+        }
+      } else if (playerIsApproachingRoundabout(g.car, vehicle.x)) {
+        vehicle.active = true;
+        vehicle.t = 0;
+      }
     }
 
     if (vehicle.active) {
       vehicle.t += dt;
       if (!getRoundaboutVehiclePose(vehicle)) {
         vehicle.active = false;
-        vehicle.done = true;
+        if (g.level?.config?.continuousTraffic) {
+          vehicle.cooldown = 2.0 + Math.random() * 4.0;
+        } else {
+          vehicle.done = true;
+        }
+      }
+    }
+  }
+
+  // 4. Main road flow (fallback for non-intersection levels)
+  for (const vehicle of mainTraffic) {
+    if (!vehicle.active) {
+      vehicle.cooldown = (vehicle.cooldown ?? 0) - dt;
+      if (vehicle.cooldown <= 0) {
+        vehicle.active = true;
+        vehicle.t = 0;
+        vehicle.speed = MAIN_ROAD_SPEED * (0.8 + Math.random() * 0.3);
+      }
+    }
+
+    if (vehicle.active) {
+      vehicle.t += dt;
+      const x = worldWidth + 100 - (vehicle.speed ?? MAIN_ROAD_SPEED) * vehicle.t;
+      if (x < -100) {
+        vehicle.active = false;
+        vehicle.cooldown = 2.0 + Math.random() * 6.0;
       }
     }
   }
@@ -89,42 +231,121 @@ export function getTrafficVehiclePoses(g) {
     }
   }
 
+  const worldWidth = g.level?.worldWidth ?? 1600;
+  for (const vehicle of g.mainRoadTraffic ?? []) {
+    const pose = getMainRoadVehiclePose(vehicle, worldWidth);
+    if (pose) {
+      poses.push({
+        ...pose,
+        kind: 'main',
+        objectiveId: 'left',
+        flag: 'mainRoadNpcCollision',
+      });
+    }
+  }
+
   return poses;
 }
 
 export function getIntersectionVehiclePose(vehicle) {
-  const y = INTERSECTION_START_Y + INTERSECTION_SPEED * vehicle.t;
-  if (vehicle.active && y > INTERSECTION_END_Y) return null;
-
-  return {
-    x: vehicle.x + ROAD_W / 4,
-    y,
-    angle: Math.PI / 2,
-    color: TRAFFIC_BLUE,
-  };
+  const points = vehicle.path;
+  const d = vehicle.t;
+  
+  let totalDist = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    const dist = Math.hypot(points[i+1].x - points[i].x, points[i+1].y - points[i].y);
+    if (totalDist + dist > d) {
+      const p = (d - totalDist) / dist;
+      const x = lerp(points[i].x, points[i+1].x, p);
+      const y = lerp(points[i].y, points[i+1].y, p);
+      const angle = Math.atan2(points[i+1].y - points[i].y, points[i+1].x - points[i].x);
+      return { x, y, angle, color: TRAFFIC_BLUE };
+    }
+    totalDist += dist;
+  }
+  return null;
 }
+
+function getManeuverPath(from, to, sideX, mainY, worldW) {
+  const L = LANE_OFFSET;
+  const entryDist = 100;
+  const exitDist = 100;
+
+  const points = [];
+  
+  // Entry Point
+  if (from === 'N') points.push({ x: sideX - L, y: -entryDist });
+  if (from === 'S') points.push({ x: sideX + L, y: H + entryDist });
+  if (from === 'W') points.push({ x: -entryDist, y: mainY - L });
+  if (from === 'E') points.push({ x: worldW + entryDist, y: mainY + L });
+
+  // Intersection Entry Line
+  if (from === 'N') points.push({ x: sideX - L, y: mainY - ROAD_W/2 });
+  if (from === 'S') points.push({ x: sideX + L, y: mainY + ROAD_W/2 });
+  if (from === 'W') points.push({ x: sideX - ROAD_W/2, y: mainY - L });
+  if (from === 'E') points.push({ x: sideX + ROAD_W/2, y: mainY + L });
+
+  // Intermediate Turning Points
+  if (from === 'N' && to === 'E') points.push({ x: sideX - L, y: mainY - L }, { x: sideX + L, y: mainY - L });
+  if (from === 'N' && to === 'W') points.push({ x: sideX - L, y: mainY + L }, { x: sideX - ROAD_W/2, y: mainY + L });
+  
+  if (from === 'S' && to === 'W') points.push({ x: sideX + L, y: mainY + L }, { x: sideX - L, y: mainY + L });
+  if (from === 'S' && to === 'E') points.push({ x: sideX + L, y: mainY - L }, { x: sideX + ROAD_W/2, y: mainY - L });
+
+  if (from === 'W' && to === 'N') points.push({ x: sideX + L, y: mainY - L }, { x: sideX + L, y: mainY - ROAD_W/2 });
+  if (from === 'W' && to === 'S') points.push({ x: sideX - L, y: mainY - L }, { x: sideX - L, y: mainY + ROAD_W/2 });
+
+  if (from === 'E' && to === 'S') points.push({ x: sideX - L, y: mainY + L }, { x: sideX - L, y: mainY + ROAD_W/2 });
+  if (from === 'E' && to === 'N') points.push({ x: sideX + L, y: mainY + L }, { x: sideX + L, y: mainY - ROAD_W/2 });
+
+  // Intersection Exit Line
+  if (to === 'N') points.push({ x: sideX + L, y: mainY - ROAD_W/2 });
+  if (to === 'S') points.push({ x: sideX - L, y: mainY + ROAD_W/2 });
+  if (to === 'W') points.push({ x: sideX - ROAD_W/2, y: mainY + L });
+  if (to === 'E') points.push({ x: sideX + ROAD_W/2, y: mainY - L });
+
+  // Final Exit Point
+  if (to === 'N') points.push({ x: sideX + L, y: -exitDist });
+  if (to === 'S') points.push({ x: sideX - L, y: H + exitDist });
+  if (to === 'W') points.push({ x: -exitDist, y: mainY + L });
+  if (to === 'E') points.push({ x: worldW + exitDist, y: mainY - L });
+
+  return points;
+}
+
 
 export function getRoundaboutVehiclePose(vehicle) {
   if (vehicle.done) return null;
 
   const cx = vehicle.x;
   const cy = MAIN_Y;
-  const wait = {
-    x: cx + ROUNDABOUT_OUTER_RADIUS + 42,
-    y: cy + ROUNDABOUT_ENTRY_Y_OFFSET,
-    angle: Math.PI,
-  };
+  const waitX = cx + ROUNDABOUT_OUTER_RADIUS + 42;
+  const waitY = cy + ROUNDABOUT_ENTRY_Y_OFFSET;
+  
+  const approachStart = { x: cx + ROUNDABOUT_OUTER_RADIUS + 500, y: waitY, angle: Math.PI };
+  const wait = { x: waitX, y: waitY, angle: Math.PI };
 
-  if (!vehicle.active) return { ...wait, color: TRAFFIC_BLUE };
+  if (!vehicle.active) return { ...approachStart, color: TRAFFIC_BLUE };
 
-  const entryEnd = ROUNDABOUT_ENTRY_DURATION;
+  const approachEnd = ROUNDABOUT_APPROACH_DURATION;
+  const entryEnd = approachEnd + ROUNDABOUT_ENTRY_DURATION;
   const arcEnd = entryEnd + ROUNDABOUT_ARC_DURATION;
   const total = arcEnd + ROUNDABOUT_EXIT_DURATION;
 
   if (vehicle.t > total) return null;
 
+  if (vehicle.t <= approachEnd) {
+    const p = vehicle.t / ROUNDABOUT_APPROACH_DURATION;
+    return {
+      x: lerp(approachStart.x, wait.x, p),
+      y: wait.y,
+      angle: Math.PI,
+      color: TRAFFIC_BLUE,
+    };
+  }
+
   if (vehicle.t <= entryEnd) {
-    const p = vehicle.t / ROUNDABOUT_ENTRY_DURATION;
+    const p = (vehicle.t - approachEnd) / ROUNDABOUT_ENTRY_DURATION;
     return {
       x: lerp(wait.x, cx + Math.cos(ROUNDABOUT_ARC_START) * ROUNDABOUT_LANE_RADIUS, p),
       y: wait.y,
@@ -152,7 +373,7 @@ export function getRoundaboutVehiclePose(vehicle) {
 
   return {
     x: exitLaneX,
-    y: lerp(arcExitY, cy - ROUNDABOUT_OUTER_RADIUS - 110, p),
+    y: lerp(arcExitY, -200, p),
     angle: -Math.PI / 2,
     color: TRAFFIC_BLUE,
   };
