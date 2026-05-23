@@ -18,7 +18,7 @@ export function createGame(level) {
     },
     intersectionTraffic: createIntersectionTraffic(level),
     roundaboutTraffic:   createRoundaboutTraffic(level),
-    mainRoadTraffic:     level?.config?.sideX ? [] : createMainRoadTraffic(level),
+    mainRoadTraffic:     (level?.config?.continuousTraffic && !level?.config?.sideX) ? createMainRoadTraffic(level) : [],
     t:          0,
     elapsed:    0,
     started:    false,

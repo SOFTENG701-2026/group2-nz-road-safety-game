@@ -228,6 +228,7 @@ export const LEVELS = [
       gravelZone: { x1: 580, x2: 980 },
       railX: 900,
       bridgeX: 1400,
+      continuousTraffic: true,
     },
   },
 
