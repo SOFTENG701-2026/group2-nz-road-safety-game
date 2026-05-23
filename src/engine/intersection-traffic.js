@@ -215,18 +215,39 @@ export function stepIntersectionTraffic(g, dt) {
     if (!vehicle.active && !vehicle.done) {
       if (g.level?.config?.continuousTraffic) {
         vehicle.cooldown = (vehicle.cooldown ?? 0) - dt;
-        if (vehicle.cooldown <= 0) { vehicle.active = true; vehicle.t = 0; }
+        if (vehicle.cooldown <= 0) {
+          vehicle.active = true;
+          vehicle.t = 0;
+        }
       } else if (playerIsApproachingRoundabout(g.car, vehicle.x)) {
         vehicle.active = true;
         vehicle.t = 0;
       }
     }
     if (vehicle.active) {
-      vehicle.t += dt;
-      if (!getRoundaboutVehiclePose(vehicle)) {
+      const pose = getRoundaboutVehiclePose(vehicle);
+      if (!pose) {
         vehicle.active = false;
         if (g.level?.config?.continuousTraffic) vehicle.cooldown = 2.0 + Math.random() * 4.0;
         else vehicle.done = true;
+        continue;
+      }
+
+      // Spacing check for roundabout
+      const sensorDist = 65;
+      const sensorX = pose.x + Math.cos(pose.angle) * sensorDist;
+      const sensorY = pose.y + Math.sin(pose.angle) * sensorDist;
+
+      const someoneAhead = npcPoses.some(other => {
+        if (Math.hypot(other.x - pose.x, other.y - pose.y) < 30) return false;
+        // In roundabout, angles change fast, so we use a slightly more generous angle check or just proximity
+        const angleDiff = Math.abs(other.angle - pose.angle);
+        if (angleDiff > 1.2 && angleDiff < Math.PI * 2 - 1.2) return false;
+        return Math.hypot(other.x - sensorX, other.y - sensorY) < 40;
+      });
+
+      if (!someoneAhead) {
+        vehicle.t += dt;
       }
     }
   }

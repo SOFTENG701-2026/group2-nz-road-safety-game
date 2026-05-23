@@ -97,17 +97,8 @@ export function useGame({ width, height, active, level, difficulty = 'normal' })
         }
       }
 
-      // ── Camera (smooth follow, clamped to world bounds) ────────────────────
-      const tx = g.car.x - width  / 2;
-      const ty = g.car.y - height / 2;
-      const k  = Math.min(1, dt * 6);   // slightly snappier follow
-      cam.x += (tx - cam.x) * k;
-      cam.y += (ty - cam.y) * k;
-      cam.x = clamp(cam.x, 0, Math.max(0, worldW - width));
-      cam.y = clamp(cam.y, 0, Math.max(0, H - height));
-
       ctx.clearRect(0, 0, width, height);
-      drawWorld(ctx, g, cam);
+      drawWorld(ctx, g);
 
       // Re-render React HUD ~10× per second
       frameCount++;
