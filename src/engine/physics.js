@@ -1,7 +1,7 @@
 // Car physics step: input, acceleration, steering, then position.
 // Difficulty only changes the top speed.
 import { W, H } from './constants.js';
-import { onRoad, inSchoolZone } from './geofence.js';
+import { onRoad, inSchoolZone, carTouchesBridgeWater } from './geofence.js';
 
 const ACCEL       =  30; // forward accel,           px/s²
 const REVERSE     =  18; // reverse accel,           px/s²
@@ -13,6 +13,8 @@ const MAX_SPEED = { easy: 270, normal: 310, hard: 360 };
 
 export function stepPhysics(g, dt, difficulty = 'normal') {
   const c = g.car;
+  const prevX = c.x;
+  const prevY = c.y;
   const maxSpeed = MAX_SPEED[difficulty] ?? MAX_SPEED.normal;
 
   // Ice surface: Mountain Pass schoolZone acts as an icy road.
@@ -47,6 +49,12 @@ export function stepPhysics(g, dt, difficulty = 'normal') {
   const worldW = g.level?.worldWidth ?? W;
   c.x = Math.max(20, Math.min(worldW - 20, c.x));
   c.y = Math.max(20, Math.min(H - 20, c.y));
+
+  if (carTouchesBridgeWater(c, g)) {
+    c.x = prevX;
+    c.y = prevY;
+    c.speed = 0;
+  }
 }
 
 function decay(speed, decel) {

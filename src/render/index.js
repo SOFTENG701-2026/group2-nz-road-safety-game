@@ -5,6 +5,7 @@ import { drawRoads }      from './roads.js';
 import { drawSigns }      from './signs.js';
 import { drawPedestrian } from './pedestrian.js';
 import { drawCar }        from './car.js';
+import { drawIntersectionTraffic } from './intersection-traffic.js';
 
 export function drawWorld(ctx, g, camera) {
   const worldW  = g.level?.worldWidth ?? W;
@@ -16,6 +17,7 @@ export function drawWorld(ctx, g, camera) {
   drawPasture(ctx, worldW, bgColor);
   drawScenery(ctx, g.level?.scenery ?? []);
   drawRoads(ctx, g);
+  drawIntersectionTraffic(ctx, g);
   drawSigns(ctx, g);
 
   if (g.ped.state !== 'done') drawPedestrian(ctx, g.ped);

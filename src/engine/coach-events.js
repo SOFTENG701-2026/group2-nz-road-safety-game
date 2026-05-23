@@ -4,6 +4,7 @@ import { FINISH_X } from './constants.js';
 import { inSchoolZone, onRoadMain, onLeftSide } from './geofence.js';
 import { pxToKmh } from './units.js';
 import { setCoach, logEvent } from './state.js';
+import { getTrafficVehiclePoses, trafficCollidesWithCar } from './intersection-traffic.js';
 
 export function stepCoachEvents(g, dt) {
   const c      = g.car;
@@ -124,7 +125,16 @@ export function stepCoachEvents(g, dt) {
         setCoach(g, 'roundaboutGood');
       }
     }
+    const giveWayObj = g.objectives.find(o => o.id === 'roundabout-giveway');
+    const npcFinished = (g.roundaboutTraffic ?? []).some(vehicle => vehicle.done);
+    if (giveWayObj && npcFinished && !giveWayObj.done && !giveWayObj.fail) {
+      giveWayObj.done = true;
+      logEvent(g, 'Gave way in roundabout', +10);
+      setCoach(g, 'roundaboutGiveWayGood');
+    }
   }
+
+  if (checkTrafficCollisions(g)) return;
 
   // ── Gravel / unsealed road ────────────────────────────────────────────────
   if (gravelZone) {
@@ -215,7 +225,7 @@ export function stepCoachEvents(g, dt) {
   }
 
   // ── Wrong side of road ───────────────────────────────────────────────────
-  if (onRoadMain(c.x, c.y) && Math.abs(c.speed) > 12 && !onLeftSide(c)) {
+  if (onRoadMain(c.x, c.y) && Math.abs(c.speed) > 12 && !onLeftSide(c, g)) {
     g.flags.wrongSideTimer = (g.flags.wrongSideTimer || 0) + dt;
     if (g.flags.wrongSideTimer > 0.6 && !g.flags.wrongSideWarned) {
       setCoach(g, 'wrongSide');
@@ -249,4 +259,36 @@ export function stepCoachEvents(g, dt) {
     if (obj) obj.done = true;
     setCoach(g, 'finish');
   }
+}
+
+function checkTrafficCollisions(g) {
+  for (const vehicle of getTrafficVehiclePoses(g)) {
+    if (g.flags[vehicle.flag] || !trafficCollidesWithCar(g.car, vehicle)) continue;
+
+    g.crashed = true;
+    g.car.speed = 0;
+    g.keys.up = false;
+    g.keys.down = false;
+    g.keys.left = false;
+    g.keys.right = false;
+    g.keys.brake = false;
+    g.flags[vehicle.flag] = true;
+    logEvent(
+      g,
+      vehicle.kind === 'roundabout' ? 'Hit roundabout traffic' : 'Hit side-road traffic',
+      -35,
+    );
+    g.demerits += 25;
+
+    const obj = g.objectives.find(o => o.id === vehicle.objectiveId);
+    if (obj) {
+      obj.done = false;
+      obj.fail = true;
+    }
+
+    setCoach(g, vehicle.kind === 'roundabout' ? 'roundaboutGiveWayFail' : 'trafficCollision');
+    return true;
+  }
+
+  return false;
 }
