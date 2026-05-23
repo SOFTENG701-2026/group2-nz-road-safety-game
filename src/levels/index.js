@@ -130,6 +130,7 @@ export const LEVELS = [
       schoolZone: { x1: 540, x2: 880 },
       pedX: 980,
       sideX: 1180,
+      continuousTraffic: true,
     },
   },
 
@@ -179,6 +180,7 @@ export const LEVELS = [
       pedX: 550,
       roundaboutX: 1000,
       sideX: 1500,
+      continuousTraffic: true,
     },
   },
 
@@ -226,6 +228,7 @@ export const LEVELS = [
       gravelZone: { x1: 580, x2: 980 },
       railX: 900,
       bridgeX: 1400,
+      continuousTraffic: true,
     },
   },
 
@@ -279,6 +282,7 @@ export const LEVELS = [
       bridgeX: 1100,
       railX: 1550,
       sideX: 1820,
+      continuousTraffic: true,
     },
   },
 ];

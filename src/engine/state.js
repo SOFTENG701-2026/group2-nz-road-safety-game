@@ -1,7 +1,7 @@
 // Game-state factory + small mutators used by the tick functions.
 import { START_X, MAIN_Y, LANE } from './constants.js';
 import { COACH_LINES } from './coach-lines.js';
-import { createIntersectionTraffic, createRoundaboutTraffic } from './intersection-traffic.js';
+import { createIntersectionTraffic, createRoundaboutTraffic, createMainRoadTraffic } from './intersection-traffic.js';
 
 export function createGame(level) {
   const startX = level?.startX ?? START_X;
@@ -18,6 +18,7 @@ export function createGame(level) {
     },
     intersectionTraffic: createIntersectionTraffic(level),
     roundaboutTraffic:   createRoundaboutTraffic(level),
+    mainRoadTraffic:     (level?.config?.continuousTraffic && !level?.config?.sideX) ? createMainRoadTraffic(level) : [],
     t:          0,
     elapsed:    0,
     started:    false,
