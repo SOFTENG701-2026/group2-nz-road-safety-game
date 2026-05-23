@@ -245,8 +245,8 @@ export function drawRoads(ctx, g) {
     ctx.fillStyle = '#3a3a3e';
     ctx.beginPath(); ctx.arc(roundaboutX, MAIN_Y, R_OUT, 0, Math.PI * 2); ctx.fill();
 
-    // ③ Dashed outer border
-    ctx.strokeStyle = '#fff';
+    // // ③ Dashed outer border
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
     ctx.lineWidth   = 3;
     ctx.setLineDash([14, 8]);
     ctx.beginPath(); ctx.arc(roundaboutX, MAIN_Y, R_OUT, 0, Math.PI * 2); ctx.stroke();
@@ -261,28 +261,28 @@ export function drawRoads(ctx, g) {
 
     // ⑤ Clockwise direction arrows on the ring road
     // tx/ty = clockwise tangent direction at each arrow position
-    ctx.fillStyle = 'rgba(255,255,255,0.85)';
-    for (let i = 0; i < 4; i++) {
-      const a  = i * Math.PI / 2;
-      const px = roundaboutX + Math.cos(a) * R_MID;
-      const py = MAIN_Y      + Math.sin(a) * R_MID;
-      const tx = -Math.sin(a); // clockwise tangent x
-      const ty =  Math.cos(a); // clockwise tangent y
-      ctx.save();
-      ctx.translate(px, py);
-      ctx.beginPath();
-      ctx.moveTo(tx * 7,              ty * 7);
-      ctx.lineTo(-tx * 4 - ty * 3.5, -ty * 4 + tx * 3.5);
-      ctx.lineTo(-tx * 4 + ty * 3.5, -ty * 4 - tx * 3.5);
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
-    }
+    // ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    // for (let i = 0; i < 4; i++) {
+    //   const a  = i * Math.PI / 2;
+    //   const px = roundaboutX + Math.cos(a) * R_MID;
+    //   const py = MAIN_Y      + Math.sin(a) * R_MID;
+    //   const tx = -Math.sin(a); // clockwise tangent x
+    //   const ty =  Math.cos(a); // clockwise tangent y
+    //   ctx.save();
+    //   ctx.translate(px, py);
+    //   ctx.beginPath();
+    //   ctx.moveTo(tx * 7,              ty * 7);
+    //   ctx.lineTo(-tx * 4 - ty * 3.5, -ty * 4 + tx * 3.5);
+    //   ctx.lineTo(-tx * 4 + ty * 3.5, -ty * 4 - tx * 3.5);
+    //   ctx.closePath();
+    //   ctx.fill();
+    //   ctx.restore();
+    // }
 
     // ⑥ Give-way lines at each entry (dashed white across approach lane)
-    ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+    ctx.strokeStyle = 'rgba(255,255,255,1)';
     ctx.lineWidth   = 3;
-    ctx.setLineDash([8, 6]);
+    // ctx.setLineDash([8, 6]);
     // East entry (westbound lane: lower half)
     ctx.beginPath();
     ctx.moveTo(roundaboutX + R_OUT, MAIN_Y);
