@@ -124,6 +124,11 @@ export function stepCoachEvents(g, dt) {
         if (obj) obj.done = true;
         setCoach(g, 'roundaboutGood');
       }
+      const giveWayObj = g.objectives.find(o => o.id === 'roundabout-giveway');
+      if (giveWayObj && !giveWayObj.done && !giveWayObj.fail) {
+        giveWayObj.done = true;
+        logEvent(g, 'Gave way in roundabout', +10);
+      }
     }
     const giveWayObj = g.objectives.find(o => o.id === 'roundabout-giveway');
     const npcFinished = (g.roundaboutTraffic ?? []).some(vehicle => vehicle.done);
