@@ -27,7 +27,7 @@ const BTN = {
   transition: 'background 0.08s',
 };
 
-export default function TouchControls({ setKey }) {
+export default function TouchControls({ setKey, isMobile }) {
   const down = useCallback((key, e) => {
     e.preventDefault();
     setKey(key, true);
@@ -41,12 +41,12 @@ export default function TouchControls({ setKey }) {
   return (
     <div style={{
       position: 'absolute',
-      bottom: 20,
-      left: '20%',
-      // transform: 'translateX(-50%)',
+      bottom: isMobile ? 10 : 54,
+      left: isMobile ? '50%' : 240,
+      transform: isMobile ? 'translateX(-50%)' : 'none',
       display: 'grid',
-      gridTemplateColumns: 'repeat(3, 54px)',
-      gridTemplateRows:    'repeat(2, 54px)',
+      gridTemplateColumns: `repeat(3, ${isMobile ? 100 : 54}px)`,
+      gridTemplateRows:    `repeat(2, ${isMobile ? 50 : 54}px)`,
       gap: 4,
       zIndex: 20,
     }}>
@@ -58,6 +58,8 @@ export default function TouchControls({ setKey }) {
           onPointerLeave={(e) => up (key, e)}
           style={{
             ...BTN,
+            width: isMobile ? 95 : 50,
+            height: isMobile ? 48 : 50,
             gridRow:    row,
             gridColumn: col,
           }}

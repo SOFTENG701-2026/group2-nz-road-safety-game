@@ -16,7 +16,7 @@ function formatTime(sec) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-export default function FinishCard({ game, onReset, onBack, onNextLevel, onComplete }) {
+export default function FinishCard({ game, onReset, onBack, onNextLevel, onComplete, isMobile }) {
   const stars       = scoreToStars(game.score);
   const currentIdx  = LEVELS.findIndex(l => l.id === game.level?.id);
   const nextLevel   = currentIdx >= 0 && currentIdx < LEVELS.length - 1
@@ -39,35 +39,36 @@ export default function FinishCard({ game, onReset, onBack, onNextLevel, onCompl
       background: 'rgba(15,18,26,0.72)',
       backdropFilter: 'blur(6px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 30,
+      zIndex: 50,
     }}>
       <div style={{
         background: '#fff',
-        padding: '20px 24px',
+        padding: isMobile ? '16px 20px' : '20px 24px',
         borderRadius: 12,
-        width: 330,
+        width: isMobile ? 300 : 330,
         boxShadow: '0 20px 50px rgba(0,0,0,0.45)',
         fontFamily: 'ui-sans-serif, system-ui',
+        transform: isMobile ? 'scale(0.95)' : 'none',
       }}>
         {/* Header */}
-        <div style={{ fontSize: 11, color: '#7a8275', letterSpacing: 2, fontWeight: 600 }}>
+        <div style={{ fontSize: isMobile ? 9 : 11, color: '#7a8275', letterSpacing: 2, fontWeight: 600 }}>
           MISSION COMPLETE
         </div>
-        <div style={{ fontSize: 22, fontWeight: 800, color: '#1a1a1a', marginTop: 4 }}>
+        <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: '#1a1a1a', marginTop: 4 }}>
           {game.level?.missionName || 'Mission Complete'}
         </div>
 
         {/* Stars */}
         <div style={{ display: 'flex', gap: 4, marginTop: 12 }}>
           {[0, 1, 2].map((i) => (
-            <svg key={i} width="34" height="34" viewBox="0 0 20 20"
+            <svg key={i} width={isMobile ? 28 : 34} height={isMobile ? 28 : 34} viewBox="0 0 20 20"
                  fill={i < stars ? '#f5b81d' : '#e0e0e0'}>
               <path d="M10 1l2.6 5.6 6.2.7-4.7 4.2 1.3 6.1L10 14.7 4.6 17.6 5.9 11.5 1.2 7.3l6.2-.7z" />
             </svg>
           ))}
           <span style={{
             marginLeft: 8, alignSelf: 'center',
-            fontSize: 11, color: '#888',
+            fontSize: isMobile ? 10 : 11, color: '#888',
           }}>
             {starLabel(stars)}
           </span>
@@ -78,30 +79,30 @@ export default function FinishCard({ game, onReset, onBack, onNextLevel, onCompl
           marginTop: 14, padding: '12px 0',
           borderTop: '1px solid #eee', borderBottom: '1px solid #eee',
         }}>
-          <Row label="Final score"    value={`${game.score} / 100`} />
-          <Row label="Demerit points" value={game.demerits} />
-          <Row label="Time"           value={formatTime(game.elapsed)} />
+          <Row label="Final score"    value={`${game.score} / 100`} isMobile={isMobile} />
+          <Row label="Demerit points" value={game.demerits} isMobile={isMobile} />
+          <Row label="Time"           value={formatTime(game.elapsed)} isMobile={isMobile} />
         </div>
 
         {/* Buttons */}
         <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
           {onBack && (
-            <button onClick={onBack} style={btnSecondary}>
+            <button onClick={onBack} style={{...btnSecondary, padding: isMobile ? '8px' : '10px', fontSize: isMobile ? 12 : 13 }}>
               ← Menu
             </button>
           )}
-          <button onClick={onReset} style={btnDanger}>
+          <button onClick={onReset} style={{...btnDanger, padding: isMobile ? '8px' : '10px', fontSize: isMobile ? 12 : 13 }}>
             Retry
           </button>
           {nextLevel && stars >= 1 && (
-            <button onClick={onNextLevel} style={btnPrimary}>
+            <button onClick={onNextLevel} style={{...btnPrimary, padding: isMobile ? '8px' : '10px', fontSize: isMobile ? 12 : 13 }}>
               Next →
             </button>
           )}
         </div>
 
         {nextLevel && stars === 0 && (
-          <p style={{ fontSize: 11, color: '#999', marginTop: 10, textAlign: 'center' }}>
+          <p style={{ fontSize: isMobile ? 9 : 11, color: '#999', marginTop: 10, textAlign: 'center' }}>
             Score at least 1 point to unlock the next level.
           </p>
         )}
@@ -110,11 +111,11 @@ export default function FinishCard({ game, onReset, onBack, onNextLevel, onCompl
   );
 }
 
-function Row({ label, value }) {
+function Row({ label, value, isMobile }) {
   return (
     <div style={{
       display: 'flex', justifyContent: 'space-between',
-      fontSize: 13, color: '#3a3a3a', marginTop: 4,
+      fontSize: isMobile ? 11 : 13, color: '#3a3a3a', marginTop: 4,
     }}>
       <span>{label}</span>
       <b style={{ fontVariantNumeric: 'tabular-nums' }}>{value}</b>

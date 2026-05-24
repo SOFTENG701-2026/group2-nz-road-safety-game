@@ -1,7 +1,7 @@
 // Distance bar between START and FINISH with hazard ticks + player dot.
 import { START_X, FINISH_X } from '../engine/constants.js';
 
-export default function ProgressBar({ carX, level }) {
+export default function ProgressBar({ carX, level, isMobile }) {
   const startX  = level?.startX  ?? START_X;
   const finishX = level?.finishX ?? FINISH_X;
   const hazards = level?.hazards ?? [];
@@ -11,15 +11,20 @@ export default function ProgressBar({ carX, level }) {
   const destName  = level?.destName  ?? 'DEST';
 
   return (
-    <div style={{ position: 'absolute', top: 56, left: 16, right: 210 }}>
+    <div style={{
+      position: 'absolute',
+      top: isMobile ? 48 : 56,
+      left: '10%',
+      width: '80%',
+    }}>
       <div style={{
         display: 'flex', justifyContent: 'space-between',
-        fontSize: 8, letterSpacing: 1.5, color: 'rgba(255,255,255,0.45)',
+        fontSize: isMobile ? 7 : 8, letterSpacing: 1.5, color: 'rgba(255,255,255,0.45)',
         marginBottom: 4,
       }}>
-        <span>START · {startName}</span>
+        <span>START · {isMobile ? startName.slice(0, 8) : startName}</span>
         <span style={{ fontVariantNumeric: 'tabular-nums' }}>{Math.round(progress * 100)}%</span>
-        <span>DEST · {destName}</span>
+        <span>DEST · {isMobile ? destName.slice(0, 8) : destName}</span>
       </div>
 
       <div style={{

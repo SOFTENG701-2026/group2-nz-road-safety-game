@@ -5,9 +5,20 @@ import { LEVELS } from './levels/index.js';
 import { loadProgress, saveLevel } from './engine/progress.js';
 
 function useWindowSize() {
-  const [size, setSize] = useState({ width: globalThis.innerWidth, height: globalThis.innerHeight });
+  const [size, setSize] = useState({
+    width: globalThis.innerWidth,
+    height: globalThis.innerHeight,
+    isMobile: globalThis.innerWidth < 768 && ('ontouchstart' in globalThis || navigator.maxTouchPoints > 0)
+  });
+
   useEffect(() => {
-    const handleResize = () => setSize({ width: globalThis.innerWidth, height: globalThis.innerHeight });
+    const handleResize = () => {
+      setSize({
+        width: globalThis.innerWidth,
+        height: globalThis.innerHeight,
+        isMobile: globalThis.innerWidth < 768 && ('ontouchstart' in globalThis || navigator.maxTouchPoints > 0)
+      });
+    };
     globalThis.addEventListener('resize', handleResize);
     return () => globalThis.removeEventListener('resize', handleResize);
   }, []);
@@ -17,7 +28,7 @@ function useWindowSize() {
 export default function App() {
   const [selectedLevel, setSelectedLevel] = useState(null);
   const [progress,      setProgress]      = useState(() => loadProgress());
-  const { width, height } = useWindowSize();
+  const { width, height, isMobile } = useWindowSize();
 
   function handleLevelComplete(score) {
     if (!selectedLevel) return;
@@ -57,6 +68,7 @@ export default function App() {
           hudDensity="full"
           width={width}
           height={height}
+          isMobile={isMobile}
         />
       </div>
     </div>

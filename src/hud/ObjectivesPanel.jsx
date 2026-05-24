@@ -18,7 +18,7 @@ function statusIconColor(o) {
   return 'rgba(255,255,255,0.3)';
 }
 
-export default function ObjectivesPanel({ objectives, upcoming, distance, finished }) {
+export default function ObjectivesPanel({ objectives, upcoming, distance, finished, isMobile }) {
   const done = objectives.filter(o => o.done).length;
 
   const upcomingMatchesPending = upcoming
@@ -29,29 +29,42 @@ export default function ObjectivesPanel({ objectives, upcoming, distance, finish
 
   return (
     <div style={{
-      position: 'absolute', bottom: 14, right: 16, width: 280,
+      position: 'absolute',
+      bottom: isMobile ? 185 : 14,
+      right: 16,
+      width: isMobile ? 190 : 280,
+      maxWidth: isMobile ? 190 : 280,
       background: 'rgba(8,12,22,0.97)',
       border: '1px solid rgba(126,200,255,0.18)',
       borderRadius: 10,
-      padding: '12px 14px',
+      padding: isMobile ? '8px 10px' : '12px 14px',
       color: '#fff',
       boxShadow: '0 10px 32px rgba(0,0,0,0.55)',
       backdropFilter: 'blur(14px)',
+      transform: isMobile ? 'scale(0.9)' : 'none',
+      transformOrigin: 'top right',
     }}>
       <header style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        marginBottom: 10, paddingBottom: 8,
+        marginBottom: isMobile ? 6 : 10, paddingBottom: isMobile ? 4 : 8,
         borderBottom: '1px solid rgba(255,255,255,0.08)',
       }}>
-        <span style={{ fontSize: 11, letterSpacing: 2, color: '#7ec8ff', fontWeight: 700 }}>
+        <span style={{ fontSize: isMobile ? 9 : 11, letterSpacing: 2, color: '#7ec8ff', fontWeight: 700 }}>
           OBJECTIVES
         </span>
-        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', fontVariantNumeric: 'tabular-nums' }}>
+        <span style={{ fontSize: isMobile ? 9 : 11, color: 'rgba(255,255,255,0.45)', fontVariantNumeric: 'tabular-nums' }}>
           {done} / {objectives.length}
         </span>
       </header>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2, 
+        height: isMobile ? 140 : 'auto',
+        overflowY: isMobile ? 'auto' : 'none',
+        paddingRight: 2
+      }}>
         {objectives.map(o => {
           const isCurrent = o.id === currentId && !o.done && !o.fail;
           return (
@@ -60,34 +73,37 @@ export default function ObjectivesPanel({ objectives, upcoming, distance, finish
               sColor={statusColor(o)}
               sIcon={statusIcon(o)}
               sIconColor={statusIconColor(o)}
+              isMobile={isMobile}
             />
           );
         })}
       </div>
 
       {!finished && (
-        <NextHazardCallout hazard={upcoming} distance={distance} />
+        <NextHazardCallout hazard={upcoming} distance={distance} isMobile={isMobile} />
       )}
     </div>
   );
 }
 
-function ObjRow({ o, isCurrent, sColor, sIcon, sIconColor }) {
+function ObjRow({ o, isCurrent, sColor, sIcon, sIconColor, isMobile }) {
   if (isCurrent) {
     return (
       <div style={{
         background: 'rgba(126,200,255,0.10)',
         border: '1px solid rgba(126,200,255,0.30)',
         borderLeft: '3px solid #7ec8ff',
-        borderRadius: 7, padding: '10px 12px', margin: '5px 0',
+        borderRadius: 7,
+        padding: isMobile ? '6px 8px' : '10px 12px',
+        margin: isMobile ? '3px 0' : '5px 0',
       }}>
         <div style={{
-          fontSize: 9, letterSpacing: 2.5, color: '#7ec8ff',
-          fontWeight: 800, marginBottom: 6,
+          fontSize: isMobile ? 8 : 9, letterSpacing: 2.5, color: '#7ec8ff',
+          fontWeight: 800, marginBottom: isMobile ? 2 : 6,
         }}>
           ▶ CURRENT TASK
         </div>
-        <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', lineHeight: 1.35 }}>
+        <div style={{ fontSize: isMobile ? 12 : 15, fontWeight: 700, color: '#fff', lineHeight: 1.35 }}>
           {o.label}
         </div>
       </div>
@@ -102,11 +118,11 @@ function ObjRow({ o, isCurrent, sColor, sIcon, sIconColor }) {
       opacity: dimmed ? 0.5 : 0.38,
       transition: 'opacity 0.3s',
     }}>
-      <span style={{ fontSize: 13, fontWeight: 900, flexShrink: 0, color: sIconColor, lineHeight: 1 }}>
+      <span style={{ fontSize: isMobile ? 11 : 13, fontWeight: 900, flexShrink: 0, color: sIconColor, lineHeight: 1 }}>
         {sIcon}
       </span>
       <span style={{
-        fontSize: 12, color: sColor, lineHeight: 1.3, flex: 1,
+        fontSize: isMobile ? 10 : 12, color: sColor, lineHeight: 1.3, flex: 1,
         textDecoration: dimmed ? 'line-through' : 'none',
       }}>
         {o.label}

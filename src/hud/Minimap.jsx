@@ -6,12 +6,17 @@ import { W, H, MAIN_Y, START_X, FINISH_X } from '../engine/constants.js';
 const MM_W = 240;
 const MM_H = 130;
 
-export default function Minimap({ game }) {
+export default function Minimap({ game, isMobile }) {
   const level      = game.level;
   const worldW     = level?.worldWidth ?? W;
   const trail      = useTrail(game);
-  const sx         = MM_W / worldW;
-  const sy         = MM_H / H;
+
+  const scaleFactor = isMobile ? 0.75 : 1;
+  const mmW = MM_W * scaleFactor;
+  const mmH = MM_H * scaleFactor;
+
+  const sx         = mmW / worldW;
+  const sy         = mmH / H;
   const headingDeg = (game.car.angle * 180) / Math.PI;
 
   const cfg         = level?.config ?? {};
@@ -27,7 +32,14 @@ export default function Minimap({ game }) {
 
   return (
     <div style={{
-      position: 'absolute', top: 84, right: 16, width: MM_W,
+      position: 'absolute',
+      top: isMobile ? 'auto' : 84,
+      bottom: isMobile ? 300 : 'auto',
+      right: isMobile ? 'auto' : 16,
+      left: isMobile ? 16 : 'auto',
+      transform: isMobile ? 'scale(0.9)' : 'none',
+      transformOrigin: 'top left',
+      width: mmW,
       background: 'rgba(14,18,26,0.55)',
       border: '1px solid rgba(126,200,255,0.18)',
       borderRadius: 6,
@@ -35,26 +47,26 @@ export default function Minimap({ game }) {
       backdropFilter: 'blur(8px)',
       overflow: 'hidden',
     }}>
-      <Header />
-      <div style={{ position: 'relative', width: MM_W, height: MM_H }}>
-        <svg width={MM_W} height={MM_H} viewBox={`0 0 ${MM_W} ${MM_H}`} style={{ display: 'block' }}>
+      <Header isMobile={isMobile} />
+      <div style={{ position: 'relative', width: mmW, height: mmH }}>
+        <svg width={mmW} height={mmH} viewBox={`0 0 ${mmW} ${mmH}`} style={{ display: 'block' }}>
           <Defs />
-          <rect width={MM_W} height={MM_H} fill="#0f1520" />
-          <rect width={MM_W} height={MM_H} fill="url(#mmGrid)" />
+          <rect width={mmW} height={mmH} fill="#0f1520" />
+          <rect width={mmW} height={mmH} fill="url(#mmGrid)" />
 
           {/* Roads */}
-          <rect x="0" y={MAIN_Y * sy - 5} width={MM_W} height="10" fill="#2a3548" />
+          <rect x="0" y={MAIN_Y * sy - (5 * scaleFactor)} width={mmW} height={10 * scaleFactor} fill="#2a3548" />
           {sideX && (
-            <rect x={sideX * sx - 4} y="0" width="8" height={MM_H} fill="#2a3548" />
+            <rect x={sideX * sx - (4 * scaleFactor)} y="0" width={8 * scaleFactor} height={mmH} fill="#2a3548" />
           )}
-          <line x1="0" y1={MAIN_Y * sy} x2={MM_W} y2={MAIN_Y * sy}
+          <line x1="0" y1={MAIN_Y * sy} x2={mmW} y2={MAIN_Y * sy}
                 stroke="#f6c945" strokeWidth="0.6" strokeDasharray="3 3" opacity="0.6" />
 
           {/* School / icy zone */}
           {schoolZone && (
             <rect
-              x={schoolZone.x1 * sx} y={MAIN_Y * sy - 5}
-              width={(schoolZone.x2 - schoolZone.x1) * sx} height="10"
+              x={schoolZone.x1 * sx} y={MAIN_Y * sy - (5 * scaleFactor)}
+              width={(schoolZone.x2 - schoolZone.x1) * sx} height={10 * scaleFactor}
               fill={level?.id === 'mountain' ? 'rgba(160,220,255,0.4)' : 'rgba(245,184,29,0.35)'}
             />
           )}
@@ -62,40 +74,40 @@ export default function Minimap({ game }) {
           {/* Gravel zone */}
           {gravelZone && (
             <rect
-              x={gravelZone.x1 * sx} y={MAIN_Y * sy - 5}
-              width={(gravelZone.x2 - gravelZone.x1) * sx} height="10"
+              x={gravelZone.x1 * sx} y={MAIN_Y * sy - (5 * scaleFactor)}
+              width={(gravelZone.x2 - gravelZone.x1) * sx} height={10 * scaleFactor}
               fill="rgba(196,163,90,0.45)"
             />
           )}
 
           {/* Pedestrian crossing */}
           {pedX && (
-            <rect x={pedX * sx - 1.5} y={MAIN_Y * sy - 5} width="3" height="10" fill="#fff" />
+            <rect x={pedX * sx - (1.5 * scaleFactor)} y={MAIN_Y * sy - (5 * scaleFactor)} width={3 * scaleFactor} height={10 * scaleFactor} fill="#fff" />
           )}
 
           {/* Roundabout */}
           {roundaboutX && (
-            <circle cx={roundaboutX * sx} cy={MAIN_Y * sy} r="7"
+            <circle cx={roundaboutX * sx} cy={MAIN_Y * sy} r={7 * scaleFactor}
                     fill="none" stroke="#a78bfa" strokeWidth="1.5" opacity="0.8" />
           )}
 
           {/* Railway crossing */}
           {railX && (
-            <line x1={railX * sx} y1={MAIN_Y * sy - 8}
-                  x2={railX * sx} y2={MAIN_Y * sy + 8}
+            <line x1={railX * sx} y1={MAIN_Y * sy - (8 * scaleFactor)}
+                  x2={railX * sx} y2={MAIN_Y * sy + (8 * scaleFactor)}
                   stroke="#ff6b6b" strokeWidth="2" />
           )}
 
           {/* Bridge */}
           {bridgeX && (
-            <rect x={bridgeX * sx - 8} y={MAIN_Y * sy - 5} width="16" height="10"
+            <rect x={bridgeX * sx - (8 * scaleFactor)} y={MAIN_Y * sy - (5 * scaleFactor)} width={16 * scaleFactor} height={10 * scaleFactor}
                   fill="#4e8ab5" stroke="#7ec8ff" strokeWidth="0.7" />
           )}
 
           {/* Give-way diamond at intersection */}
           {sideX && (
             <polygon
-              points={`${sideX*sx},${MAIN_Y*sy+10} ${sideX*sx+4},${MAIN_Y*sy+14} ${sideX*sx},${MAIN_Y*sy+18} ${sideX*sx-4},${MAIN_Y*sy+14}`}
+              points={`${sideX*sx},${MAIN_Y*sy+10*scaleFactor} ${sideX*sx+4*scaleFactor},${MAIN_Y*sy+14*scaleFactor} ${sideX*sx},${MAIN_Y*sy+18*scaleFactor} ${sideX*sx-4*scaleFactor},${MAIN_Y*sy+14*scaleFactor}`}
               fill="rgba(126,200,255,0.5)" stroke="#7ec8ff" strokeWidth="0.7"
             />
           )}
@@ -110,25 +122,25 @@ export default function Minimap({ game }) {
           )}
 
           {/* Start / Finish */}
-          <circle cx={startX  * sx} cy={MAIN_Y * sy} r="3" fill="#7ce69a" stroke="#0a0d12" strokeWidth="1" />
-          <circle cx={finishX * sx} cy={MAIN_Y * sy} r="4" fill="#f5b81d" stroke="#0a0d12" strokeWidth="1" />
-          <text x={finishX * sx} y={MAIN_Y * sy - 7}
-                fill="#f5b81d" fontSize="7" fontWeight="700" textAnchor="middle" letterSpacing="0.5">
+          <circle cx={startX  * sx} cy={MAIN_Y * sy} r={3 * scaleFactor} fill="#7ce69a" stroke="#0a0d12" strokeWidth="1" />
+          <circle cx={finishX * sx} cy={MAIN_Y * sy} r={4 * scaleFactor} fill="#f5b81d" stroke="#0a0d12" strokeWidth="1" />
+          <text x={finishX * sx} y={MAIN_Y * sy - (7 * scaleFactor)}
+                fill="#f5b81d" fontSize={7 * scaleFactor} fontWeight="700" textAnchor="middle" letterSpacing="0.5">
             END
           </text>
 
           {/* Player ping */}
-          <circle cx={game.car.x * sx} cy={game.car.y * sy} r="10" fill="url(#mmPing)">
-            <animate attributeName="r"       values="6;14;6"    dur="1.8s" repeatCount="indefinite" />
+          <circle cx={game.car.x * sx} cy={game.car.y * sy} r={10 * scaleFactor} fill="url(#mmPing)">
+            <animate attributeName="r"       values={`${6*scaleFactor};${14*scaleFactor};${6*scaleFactor}`}    dur="1.8s" repeatCount="indefinite" />
             <animate attributeName="opacity" values="0.8;0;0.8" dur="1.8s" repeatCount="indefinite" />
           </circle>
           <g transform={`translate(${game.car.x * sx},${game.car.y * sy}) rotate(${headingDeg})`}>
-            <polygon points="-3,-3 5,0 -3,3" fill="#fff" stroke="#d83a2e" strokeWidth="1" />
+            <polygon points={`${-3*scaleFactor},${-3*scaleFactor} ${5*scaleFactor},0 ${-3*scaleFactor},${3*scaleFactor}`} fill="#fff" stroke="#d83a2e" strokeWidth="1" />
           </g>
         </svg>
 
-        <ScaleBar />
-        <Coords />
+        <ScaleBar scaleFactor={scaleFactor} />
+        <Coords scaleFactor={scaleFactor} />
       </div>
     </div>
   );
@@ -148,15 +160,15 @@ function Defs() {
   );
 }
 
-function Header() {
+function Header({ isMobile }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '8px 12px 6px',
+      padding: isMobile ? '4px 8px 3px' : '8px 12px 6px',
     }}>
-      <span style={{ fontSize: 9, letterSpacing: 2, color: '#7ec8ff', fontWeight: 600 }}>TACTICAL MAP</span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 9, color: 'rgba(255,255,255,0.5)' }}>
-        <svg width="10" height="10" viewBox="0 0 10 10">
+      <span style={{ fontSize: isMobile ? 7 : 9, letterSpacing: 2, color: '#7ec8ff', fontWeight: 600 }}>TACTICAL MAP</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: isMobile ? 7 : 9, color: 'rgba(255,255,255,0.5)' }}>
+        <svg width={isMobile ? 8 : 10} height={isMobile ? 8 : 10} viewBox="0 0 10 10">
           <path d="M5 1 L7 7 L5 5.5 L3 7 Z" fill="#ff7a6a" />
           <path d="M5 9 L7 3 L5 4.5 L3 3 Z" fill="rgba(255,255,255,0.4)" />
         </svg>
@@ -166,27 +178,27 @@ function Header() {
   );
 }
 
-function ScaleBar() {
+function ScaleBar({ scaleFactor = 1 }) {
   return (
     <div style={{
-      position: 'absolute', bottom: 6, left: 8,
-      color: 'rgba(255,255,255,0.55)', fontSize: 8,
-      display: 'flex', alignItems: 'center', gap: 4,
+      position: 'absolute', bottom: 6 * scaleFactor, left: 8 * scaleFactor,
+      color: 'rgba(255,255,255,0.55)', fontSize: 8 * scaleFactor,
+      display: 'flex', alignItems: 'center', gap: 4 * scaleFactor,
     }}>
-      <div style={{ position: 'relative', width: 36, height: 2, background: 'rgba(255,255,255,0.55)' }}>
-        <div style={{ position: 'absolute', left:  0, top: -2, width: 1, height: 6, background: 'rgba(255,255,255,0.55)' }} />
-        <div style={{ position: 'absolute', right: 0, top: -2, width: 1, height: 6, background: 'rgba(255,255,255,0.55)' }} />
+      <div style={{ position: 'relative', width: 36 * scaleFactor, height: 2 * scaleFactor, background: 'rgba(255,255,255,0.55)' }}>
+        <div style={{ position: 'absolute', left:  0, top: -2 * scaleFactor, width: 1, height: 6 * scaleFactor, background: 'rgba(255,255,255,0.55)' }} />
+        <div style={{ position: 'absolute', right: 0, top: -2 * scaleFactor, width: 1, height: 6 * scaleFactor, background: 'rgba(255,255,255,0.55)' }} />
       </div>
       <span style={{ letterSpacing: 0.5 }}>100 m</span>
     </div>
   );
 }
 
-function Coords() {
+function Coords({ scaleFactor = 1 }) {
   return (
     <div style={{
-      position: 'absolute', bottom: 6, right: 8,
-      color: 'rgba(255,255,255,0.45)', fontSize: 8,
+      position: 'absolute', bottom: 6 * scaleFactor, right: 8 * scaleFactor,
+      color: 'rgba(255,255,255,0.45)', fontSize: 8 * scaleFactor,
       fontVariantNumeric: 'tabular-nums', letterSpacing: 0.5,
     }}>
       36°47′S · 174°45′E

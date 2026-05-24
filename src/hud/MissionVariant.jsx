@@ -26,6 +26,7 @@ export default function MissionVariant({
   difficulty = 'normal',
   width  = 720,
   height = 500,
+  isMobile = false,
 }) {
   const { canvasRef, game, reset, setKey } = useGame({
     width, height, active, level, difficulty,
@@ -57,39 +58,44 @@ export default function MissionVariant({
         onReset={reset}
         onBack={onBack}
         level={game.level}
+        isMobile={isMobile}
       />
 
-      <ProgressBar carX={game.car.x} level={game.level} />
+      <ProgressBar carX={game.car.x} level={game.level} isMobile={isMobile} />
 
-      <NextHazardStrip hazard={game.finished ? null : upcoming} distance={distance} />
+      <NextHazardStrip hazard={game.finished ? null : upcoming} distance={distance} isMobile={isMobile} />
 
-      <Minimap game={game} />
+      <Minimap game={game} isMobile={isMobile} />
 
-      <SpeedPanel car={game.car} level={game.level} />
+      <SpeedPanel car={game.car} level={game.level} isMobile={isMobile} />
 
       <ObjectivesPanel
         objectives={game.objectives}
         upcoming={upcoming}
         distance={distance}
         finished={game.finished}
+        isMobile={isMobile}
       />
 
-      <RadioLog game={game} />
+      <RadioLog game={game} isMobile={isMobile} />
 
       {/* Key hint */}
-      <div style={{
-        position: 'absolute',
-        bottom: IS_TOUCH ? 160 : 14,
-        left: 200,
-        display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start',
-      }}>
-        {!IS_TOUCH && <KeyHint />}
-        <span style={{ fontSize: 11, letterSpacing: 1.2, color: 'rgba(255,255,255,0.45)' }}>
-          R — RESET
-        </span>
-      </div>
+      {!isMobile && (
+        <div style={{
+          position: 'absolute',
+          bottom: 14,
+          left: 240,
+          display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start',
+          pointerEvents: 'none',
+        }}>
+          <KeyHint />
+          <span style={{ fontSize: 11, letterSpacing: 1.2, color: 'rgba(255,255,255,0.45)' }}>
+            R — RESET
+          </span>
+        </div>
+      )}
 
-      {IS_TOUCH && <TouchControls setKey={setKey} />}
+      {(isMobile || IS_TOUCH) && <TouchControls setKey={setKey} isMobile={isMobile} />}
 
       {game.finished && (
         <FinishCard
@@ -98,6 +104,7 @@ export default function MissionVariant({
           onBack={onBack}
           onNextLevel={onNextLevel}
           onComplete={onComplete}
+          isMobile={isMobile}
         />
       )}
 
