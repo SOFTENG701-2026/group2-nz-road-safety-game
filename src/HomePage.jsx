@@ -1,233 +1,478 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { LEVELS } from './levels/index.js';
 import { isLevelUnlocked } from './engine/progress.js';
+import { useGame } from './engine/useGame.js';
+
+// Education-focused theme colors
+const THEME_COLORS = {
+  suburban: '#f5b81d', // Gold
+  city:     '#a78bfa', // Purple
+  rural:    '#7ce69a', // Forest Green
+  mountain: '#7ec8ff', // Ice Blue
+};
 
 export default function HomePage({ onSelectLevel, progress }) {
+  const [selectedBriefing, setSelectedBriefing] = useState(null);
+  const [windowSize, setWindowSize] = useState({ 
+    width: window.innerWidth, 
+    height: window.innerHeight,
+    isMobile: window.innerWidth < 1024
+  });
+
+  useEffect(() => {
+    const handleResize = () => setWindowSize({ 
+      width: window.innerWidth, 
+      height: window.innerHeight,
+      isMobile: window.innerWidth < 1024
+    });
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const isMobile = windowSize.isMobile;
+
   return (
     <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(160deg, #070c1a 0%, #0d1e30 55%, #091420 100%)',
-      display: 'flex', flexDirection: 'column', alignItems: 'center',
-      fontFamily: '"Space Grotesk", ui-sans-serif, system-ui',
+      width: '100vw', height: '100vh',
+      background: '#04060b',
       color: '#fff',
-      padding: '48px 24px 60px',
-      boxSizing: 'border-box',
+      fontFamily: '"Space Grotesk", ui-sans-serif, system-ui',
+      overflowX: 'hidden',
+      overflowY: isMobile ? 'auto' : 'hidden',
+      position: 'relative',
+      display: 'flex', flexDirection: 'column',
     }}>
+      {/* ── Background Simulation ─────────────────────────────────────── */}
+      <BackgroundSim width={windowSize.width} height={windowSize.height} />
 
-      {/* ── Header ──────────────────────────────────────────────────────── */}
-      <div style={{ textAlign: 'center', marginBottom: 36 }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
-          <NZFlag />
-          <span style={{ fontSize: 13, letterSpacing: 3.5, color: '#7ec8ff', fontWeight: 700 }}>
-            NZ TRANSPORT AGENCY · WAKA KOTAHI
-          </span>
-        </div>
-
-        <h1 style={{
-          fontSize: 42, fontWeight: 900, margin: 0, letterSpacing: -1.5,
-          background: 'linear-gradient(135deg, #ffffff 0%, #a8d8ff 100%)',
-          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-          lineHeight: 1.1,
-        }}>
-          NZ Road Safety Game
-        </h1>
-
-        <p style={{
-          color: 'rgba(255,255,255,0.5)', marginTop: 12, fontSize: 17,
-          maxWidth: 500, lineHeight: 1.65,
-        }}>
-          Learn New Zealand road rules through four interactive driving challenges.
-          Each level introduces new hazards and safety concepts from the NZTA guide.
-        </p>
-
-        <div style={{ display: 'flex', gap: 20, justifyContent: 'center', marginTop: 20, flexWrap: 'wrap' }}>
-          {['Behaviourism', 'Cognitivism', 'Constructivism', 'Experientialism'].map(t => (
-            <span key={t} style={{
-              fontSize: 12, letterSpacing: 2, fontWeight: 700,
-              padding: '4px 10px', borderRadius: 20,
-              background: 'rgba(126,200,255,0.1)',
-              border: '1px solid rgba(126,200,255,0.25)',
-              color: '#7ec8ff',
-            }}>{t.toUpperCase()}</span>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Level grid ─────────────────────────────────────────────────── */}
+      {/* ── Overlay Vignette & Grid ─────────────────────────── */}
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))',
-        gap: 20, width: '100%', maxWidth: 1400,
+        position: 'absolute', inset: 0,
+        background: `
+          radial-gradient(circle at 50% 50%, transparent 20%, rgba(4,6,11,0.25) 70%, rgba(4,6,11,0.6) 100%),
+          linear-gradient(rgba(126,200,255,0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(126,200,255,0.03) 1px, transparent 1px)
+        `,
+        backgroundSize: '100% 100%, 40px 40px, 40px 40px',
+        pointerEvents: 'none', zIndex: 1,
+      }} />
+
+      {/* ── Header (Official Branding) ─────────────────────────────── */}
+      <header style={{
+        position: 'relative', zIndex: 10,
+        padding: isMobile ? '24px 20px' : '40px 64px',
+        display: 'flex', flexDirection: isMobile ? 'column' : 'row',
+        justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center',
+        background: 'linear-gradient(180deg, rgba(4,6,11,0.8) 0%, transparent 100%)',
+        gap: isMobile ? 20 : 0
       }}>
-        {LEVELS.map((level, idx) => {
-          const unlocked = isLevelUnlocked(idx, LEVELS, progress);
-          const stars    = progress[level.id] ?? 0;
-          return (
-            <LevelCard
-              key={level.id}
-              level={level}
-              unlocked={unlocked}
-              stars={stars}
-              onSelect={() => onSelectLevel(level)}
-            />
-          );
-        })}
-      </div>
-
-      {/* ── Controls hint ──────────────────────────────────────────────── */}
-      <div style={{ marginTop: 48, display: 'flex', gap: 24, flexWrap: 'wrap', justifyContent: 'center' }}>
-        {[
-          { key: '↑ W',   label: 'Accelerate' },
-          { key: '↓ S',   label: 'Reverse'    },
-          { key: '← →',  label: 'Steer'       },
-          { key: 'Space', label: 'Brake'       },
-          { key: 'R',     label: 'Restart'     },
-        ].map(({ key, label }) => (
-          <div key={key} style={{ textAlign: 'center' }}>
-            <div style={{
-              background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.14)',
-              borderRadius: 6, padding: '4px 10px', fontSize: 14, fontWeight: 700, letterSpacing: 1,
-            }}>{key}</div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 4, letterSpacing: 1 }}>
-              {label.toUpperCase()}
+        <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+          <div style={{ width: isMobile ? 4 : 6, height: isMobile ? 40 : 60, background: '#7ec8ff', borderRadius: 3, boxShadow: '0 0 20px #7ec8ff' }} />
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+              <NZFlag size={isMobile ? 'small' : 'normal'} />
+              <span style={{ fontSize: 12, letterSpacing: 6, color: '#7ec8ff', fontWeight: 800, opacity: 0.8 }}>
+                NZ TRANSPORT AGENCY · WAKA KOTAHI
+              </span>
             </div>
+            <h1 style={{ fontSize: isMobile ? 28 : 52, fontWeight: 900, margin: 0, letterSpacing: -1, textTransform: 'uppercase', lineHeight: 0.9 }}>
+              <span style={{ color: '#fff' }}>NZ</span> ROAD SAFETY <span style={{ color: '#7ec8ff', textShadow: '0 0 30px rgba(126,200,255,0.6)' }}>CHALLENGE</span>
+            </h1>
           </div>
-        ))}
-      </div>
+        </div>
 
-      <div style={{ marginTop: 40, fontSize: 13, letterSpacing: 2, color: 'rgba(255,255,255,0.18)' }}>
-        NZ TRANSPORT AGENCY WAKA KOTAHI · DRIVING IN NEW ZEALAND · ROAD SAFETY EDUCATION · SOFTENG 701 Group2 2026
+        <div style={{ 
+          textAlign: isMobile ? 'left' : 'right', 
+          display: 'flex', gap: isMobile ? 24 : 40, 
+          background: isMobile ? 'transparent' : 'rgba(13, 30, 48, 0.7)', 
+          padding: isMobile ? 0 : '20px 40px', 
+          borderRadius: 12, border: isMobile ? 'none' : '1px solid rgba(126,200,255,0.3)', 
+          backdropFilter: isMobile ? 'none' : 'blur(10px)' 
+        }}>
+          <GlobalStat label="LEVELS COMPLETED" value={`${Object.keys(progress).length}/${LEVELS.length}`} isMobile={isMobile} />
+          <GlobalStat label="STARS EARNED" value={`${Object.values(progress).reduce((a, b) => a + b, 0)}/${LEVELS.length * 3} ★`} isMobile={isMobile} />
+        </div>
+      </header>
+
+      {/* ── Level Selector ────────────────────────────────────────── */}
+      <main style={{
+        position: 'relative', zIndex: 5,
+        flex: 1,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: isMobile ? '40px 20px' : '0 80px',
+      }}>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: isMobile ? 'column' : 'row',
+          alignItems: 'center', 
+          gap: isMobile ? 30 : 40, 
+          position: 'relative',
+          width: isMobile ? '100%' : 'auto'
+        }}>
+          {!isMobile && (
+            <svg style={{ position: 'absolute', top: '50%', left: 100, right: 100, width: 'calc(100% - 200px)', height: 2, transform: 'translateY(-50%)', zIndex: -1 }}>
+              <line x1="0" y1="0" x2="100%" y2="0" stroke="rgba(126,200,255,0.2)" strokeWidth="2" strokeDasharray="16 12" />
+            </svg>
+          )}
+
+          {LEVELS.map((level, idx) => {
+            const unlocked = isLevelUnlocked(idx, LEVELS, progress);
+            const stars    = progress[level.id] ?? 0;
+            const themeColor = THEME_COLORS[level.id] || level.color;
+            return (
+              <InteractiveLevelNode
+                key={level.id}
+                level={level}
+                unlocked={unlocked}
+                stars={stars}
+                themeColor={themeColor}
+                isMobile={isMobile}
+                onClick={() => unlocked && setSelectedBriefing({ ...level, color: themeColor })}
+              />
+            );
+          })}
+        </div>
+      </main>
+
+      {/* ── Footer Controls ─────────────────────────────────────────── */}
+      <footer style={{
+        position: 'relative', zIndex: 10,
+        padding: isMobile ? '30px 20px' : '60px 64px 40px',
+        background: 'linear-gradient(0deg, rgba(4,6,11,0.9) 0%, transparent 100%)',
+        display: 'flex', justifyContent: 'center', alignItems: 'center'
+      }}>
+        {!isMobile ? (
+          <div style={{ display: 'flex', gap: 40 }}>
+            {[
+              { keys: 'W A S D / ↑ ← ↓ →', label: 'ACCELERATE & STEER' },
+              { keys: 'SPACE', label: 'BRAKE' },
+              { keys: 'R', label: 'RESTART LEVEL' },
+            ].map(ctrl => (
+              <div key={ctrl.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                <div style={{ 
+                  fontSize: 18, fontWeight: 900, color: '#fff', 
+                  background: 'rgba(126,200,255,0.15)', border: '2px solid rgba(126,200,255,0.4)', 
+                  padding: '10px 24px', borderRadius: 8, boxShadow: '0 0 20px rgba(126,200,255,0.2)',
+                  letterSpacing: 2
+                }}>{ctrl.keys}</div>
+                <div style={{ fontSize: 11, letterSpacing: 3, fontWeight: 800, color: 'rgba(126,200,255,0.6)' }}>{ctrl.label}</div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ textAlign: 'center', color: 'rgba(126,200,255,0.5)', fontSize: 12, fontWeight: 800, letterSpacing: 2 }}>
+            USE ON-SCREEN CONTROLS TO DRIVE
+          </div>
+        )}
+      </footer>
+
+      {selectedBriefing && (
+        <LevelBriefing
+          level={selectedBriefing}
+          stars={progress[selectedBriefing.id] ?? 0}
+          isMobile={isMobile}
+          onClose={() => setSelectedBriefing(null)}
+          onStart={() => onSelectLevel(selectedBriefing)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── Background Simulation ────────────────────────────────────────────────────
+
+function BackgroundSim({ width, height }) {
+  const { canvasRef, game } = useGame({
+    width, height,
+    active: true,
+    level: LEVELS[0],
+    difficulty: 'easy'
+  });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      game.keys.up = true;
+      if (game.car.x > 1500) game.car.x = 50; 
+    }, 100);
+    return () => clearInterval(timer);
+  }, [game]);
+
+  return (
+    <div style={{
+      position: 'absolute', inset: 0, opacity: 0.5,
+      transform: 'scale(1.02)', filter: 'blur(2px) brightness(0.8)',
+      pointerEvents: 'none', zIndex: 0,
+    }}>
+      <canvas ref={canvasRef} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+    </div>
+  );
+}
+
+// ── Interactive Level Node ───────────────────────────────────────────────────
+
+function InteractiveLevelNode({ level, unlocked, stars, themeColor, onClick, isMobile }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        width: isMobile ? '100%' : 280,
+        height: isMobile ? 'auto' : 380,
+        minHeight: isMobile ? 140 : 380,
+        display: 'flex', 
+        flexDirection: isMobile ? 'row' : 'column', 
+        alignItems: 'center',
+        cursor: unlocked ? 'pointer' : 'not-allowed',
+        padding: isMobile ? '20px' : '30px 20px',
+        background: unlocked 
+          ? (hovered ? `linear-gradient(${isMobile ? '90deg' : '180deg'}, ${themeColor}22 0%, rgba(13,30,48,0.95) 100%)` : 'rgba(13,30,48,0.85)')
+          : 'rgba(255,255,255,0.02)',
+        border: `2px solid ${unlocked ? (hovered ? themeColor : 'rgba(255,255,255,0.15)') : 'rgba(255,255,255,0.05)'}`,
+        borderRadius: 24,
+        transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+        transform: hovered && unlocked ? (isMobile ? 'scale(1.02)' : 'translateY(-20px) scale(1.05)') : 'none',
+        boxShadow: hovered && unlocked ? `0 30px 60px rgba(0,0,0,0.5), 0 0 30px ${themeColor}33` : 'none',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      <div style={{ position: 'relative', zIndex: 2, width: '100%', display: 'flex', flexDirection: isMobile ? 'row' : 'column', alignItems: 'center', justifyContent: isMobile ? 'space-between' : 'space-between', height: isMobile ? 'auto' : '100%', gap: isMobile ? 20 : 0 }}>
+        <div style={{ textAlign: isMobile ? 'left' : 'center', flex: isMobile ? 1 : 'none' }}>
+          <div style={{ fontSize: isMobile ? 9 : 10, letterSpacing: 4, fontWeight: 800, color: unlocked ? themeColor : 'rgba(255,255,255,0.2)', marginBottom: 4 }}>
+            LEVEL 0{level.number}
+          </div>
+          <h3 style={{ fontSize: isMobile ? 20 : 24, fontWeight: 900, margin: 0, textTransform: 'uppercase', color: unlocked ? '#fff' : 'rgba(255,255,255,0.2)' }}>
+            {level.id}
+          </h3>
+        </div>
+
+        <div style={{
+          width: isMobile ? 60 : 100, height: isMobile ? 60 : 100,
+          background: unlocked ? (hovered ? themeColor : 'rgba(255,255,255,0.03)') : 'rgba(255,255,255,0.02)',
+          border: `2px solid ${unlocked ? (hovered ? '#fff' : themeColor) : 'rgba(255,255,255,0.1)'}`,
+          borderRadius: '50%',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'all 0.3s',
+          flexShrink: 0
+        }}>
+          {unlocked ? (
+            <span style={{ fontSize: isMobile ? 20 : 32, color: hovered ? '#000' : themeColor }}>{hovered ? '▶' : level.number}</span>
+          ) : (
+            <span style={{ fontSize: isMobile ? 20 : 32 }}>🔒</span>
+          )}
+        </div>
+
+        <div style={{ textAlign: isMobile ? 'right' : 'center', minWidth: isMobile ? 100 : 'none' }}>
+          <div style={{ fontSize: isMobile ? 8 : 12, fontWeight: 700, color: unlocked ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.1)', marginBottom: 8, letterSpacing: 1 }}>
+            {unlocked ? 'SAFETY PERFORMANCE' : 'LOCKED'}
+          </div>
+          <div style={{ display: 'flex', justifyContent: isMobile ? 'flex-end' : 'center' }}>
+            <Stars earned={stars} color={themeColor} size={isMobile ? 16 : 24} />
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-// ── Level card ────────────────────────────────────────────────────────────────
+// ── Level Briefing Modal ───────────────────────────────────────────────────
 
-function LevelCard({ level, unlocked, stars, onSelect }) {
-  const [hovered, setHovered] = React.useState(false);
-  const borderColor = hovered && unlocked ? `${level.color}55` : 'rgba(255,255,255,0.09)';
-
+function LevelBriefing({ level, stars, onClose, onStart, isMobile }) {
   return (
-    <article
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        background: hovered && unlocked ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.04)',
-        border: `1px solid ${borderColor}`,
-        borderRadius: 14,
-        padding: '0 0 20px',
-        cursor: unlocked ? 'pointer' : 'default',
-        transition: 'transform 0.15s, background 0.15s, border-color 0.15s, box-shadow 0.15s',
-        transform: hovered && unlocked ? 'translateY(-3px)' : 'none',
-        boxShadow: hovered && unlocked
-          ? `0 12px 40px ${level.color}18`
-          : '0 4px 16px rgba(0,0,0,0.3)',
-        position: 'relative',
-        overflow: 'hidden',
-        display: 'flex', flexDirection: 'column',
-        opacity: unlocked ? 1 : 0.55,
-      }}
-    >
-      {/* Colour accent bar */}
+    <div style={{
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+      background: 'rgba(4, 6, 11, 0.95)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 1000,
+      backdropFilter: 'blur(40px)',
+      padding: isMobile ? 0 : 20,
+      overflow: 'hidden'
+    }}>
       <div style={{
-        height: 4,
-        background: `linear-gradient(90deg, ${level.color}, ${level.color}88)`,
-        borderRadius: '14px 14px 0 0',
-      }} />
+        width: '100%', 
+        maxWidth: isMobile ? '100%' : 940,
+        height: isMobile ? '100%' : 'auto',
+        maxHeight: isMobile ? '100%' : '90vh',
+        background: '#0d1e30',
+        border: isMobile ? 'none' : `1px solid rgba(126,200,255,0.3)`,
+        borderRadius: isMobile ? 0 : 12,
+        overflow: 'hidden',
+        boxShadow: isMobile ? 'none' : '0 100px 200px rgba(0,0,0,0.9)',
+        animation: 'modalFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+        display: 'flex', 
+        flexDirection: 'column',
+      }}>
+        <style>{`
+          @keyframes modalFadeIn {
+            from { transform: scale(0.97) translateY(50px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+          }
+          @keyframes glint {
+            0% { left: -120%; }
+            35% { left: 120%; }
+            100% { left: 120%; }
+          }
+          @keyframes bloom {
+            0% { box-shadow: 0 0 15px ${level.color}44; }
+            100% { box-shadow: 0 0 40px ${level.color}88, 0 0 10px rgba(255,255,255,0.2); }
+          }
+        `}</style>
 
-      <div style={{ padding: '18px 20px 0' }}>
-        {/* Level badge + stars */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-          <div style={{ fontSize: 12, letterSpacing: 3.5, fontWeight: 800, color: level.color }}>
-            {level.name.toUpperCase()}
-          </div>
-          <Stars earned={stars} color={level.color} />
-        </div>
-
-        <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: -0.4, lineHeight: 1.15 }}>
-          {level.title}
-        </div>
-        <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)', marginTop: 5, lineHeight: 1.4 }}>
-          {level.subtitle}
-        </div>
-
-        <div style={{ fontSize: 15, color: 'rgba(255,255,255,0.82)', marginTop: 12, lineHeight: 1.6, minHeight: '8em' }}>
-          {level.description}
-        </div>
-
-        {/* Objectives preview */}
-        <div style={{ marginTop: 14, minHeight: '7em' }}>
-          {level.objectives.filter(o => o.id !== 'finish').map(o => (
-            <div key={o.id} style={{
-              display: 'flex', alignItems: 'center', gap: 7,
-              fontSize: 14, color: 'rgba(255,255,255,0.5)', marginBottom: 5,
-            }}>
-              <span style={{
-                width: 5, height: 5, borderRadius: '50%',
-                background: level.color, flexShrink: 0, opacity: 0.8,
-              }} />
-              {o.label}
+        {/* Fixed Header */}
+        <div style={{ 
+          background: '#08121d', 
+          padding: isMobile ? '24px 20px' : '40px 60px', 
+          borderBottom: '1px solid rgba(126,200,255,0.1)', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          flexShrink: 0,
+          zIndex: 10
+        }}>
+          <div>
+            <div style={{ fontSize: 9, letterSpacing: 4, color: '#7ec8ff', fontWeight: 800, opacity: 0.6, marginBottom: 8 }}>
+              LEVEL_0{level.number}
             </div>
-          ))}
-        </div>
-
-        {/* Theme tags */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 14 }}>
-          {level.themes.map(t => (
-            <span key={t} style={{
-              fontSize: 12, letterSpacing: 1.2, fontWeight: 700,
-              padding: '3px 8px', borderRadius: 20,
-              background: `${level.color}18`, border: `1px solid ${level.color}38`,
-              color: level.color,
-            }}>{t}</span>
-          ))}
-        </div>
-      </div>
-
-      {/* Play / Locked button */}
-      <div style={{ padding: '16px 20px 0' }}>
-        {unlocked ? (
-          <button
-            onClick={onSelect}
-            style={{
-              width: '100%', padding: '11px 0',
-              background: hovered ? level.color : `${level.color}cc`,
-              color: level.textColor,
-              border: 'none', borderRadius: 9,
-              fontWeight: 800, fontSize: 16, cursor: 'pointer',
-              letterSpacing: 0.5, fontFamily: 'inherit',
-              transition: 'background 0.15s',
+            <h2 style={{ fontSize: isMobile ? 24 : 44, fontWeight: 900, margin: 0, textTransform: 'uppercase', letterSpacing: -1, lineHeight: 1 }}>
+              {level.missionName}
+            </h2>
+          </div>
+          <button 
+            onClick={onClose} 
+            style={{ 
+              ...closeBtnStyle, 
+              width: 'auto', 
+              padding: isMobile ? '8px 16px' : '10px 28px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: isMobile ? 8 : 12,
+              background: 'rgba(255,255,255,0.08)',
+              border: '1px solid rgba(255,255,255,0.1)'
             }}
           >
-            {stars > 0 ? `Play again  ·  ` : `Play Level ${level.number}  →`}
-            {stars > 0 && '★'.repeat(stars) + '☆'.repeat(3 - stars)}
+            <span style={{ fontSize: isMobile ? 16 : 20 }}>✕</span>
+            <span style={{ fontSize: isMobile ? 11 : 13, letterSpacing: 2, fontWeight: 800 }}>CLOSE</span>
           </button>
-        ) : (
-          <div style={{
-            width: '100%', padding: '11px 0',
-            background: 'rgba(255,255,255,0.06)',
-            color: 'rgba(255,255,255,0.35)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 9, fontWeight: 700, fontSize: 16,
-            textAlign: 'center', letterSpacing: 0.5,
-          }}>
-            🔒 Complete Level {level.number - 1} first
+        </div>
+
+        {/* Scrollable Content */}
+        <div style={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          padding: isMobile ? '30px 20px' : '60px 80px',
+          WebkitOverflowScrolling: 'touch' 
+        }}>
+          <div style={{ marginBottom: isMobile ? 40 : 64 }}>
+            <SectionHeader label="MISSION SUMMARY" />
+            <p style={{ 
+              fontSize: isMobile ? 16 : 22, color: '#fff', lineHeight: 1.6, marginTop: 20, fontWeight: 500
+            }}>{level.description}</p>
           </div>
-        )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.1fr 0.9fr', gap: isMobile ? 40 : 80 }}>
+            <div>
+              <SectionHeader label="LEARNING OBJECTIVES" />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 20 }}>
+                {level.objectives.filter(o => o.id !== 'finish').map(o => (
+                  <div key={o.id} style={{ ...objRowStyle, padding: isMobile ? '12px 16px' : '16px 24px' }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: level.color, boxShadow: `0 0 12px ${level.color}`, flexShrink: 0 }} />
+                    <span style={{ fontSize: isMobile ? 14 : 18, fontWeight: 600 }}>{o.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <SectionHeader label="SCORING" />
+              <div style={{ marginTop: 20, background: 'rgba(0,0,0,0.25)', padding: '24px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+                  <Stars earned={stars} color="#f5b81d" size={isMobile ? 24 : 38} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <RatingHint stars={1} label="Passed" pts="1+" />
+                  <RatingHint stars={2} label="Advanced" pts="60+" />
+                  <RatingHint stars={3} label="Perfect" pts="85+" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Fixed Footer */}
+        <div style={{ 
+          padding: isMobile ? '20px' : '40px 80px', 
+          background: 'rgba(8, 18, 29, 0.98)', 
+          borderTop: '1px solid rgba(126,200,255,0.1)',
+          flexShrink: 0,
+          zIndex: 10,
+          display: 'flex',
+          justifyContent: 'center',
+          backdropFilter: 'blur(10px)',
+          position: 'relative'
+        }}>
+          <button 
+            onClick={onStart} 
+            style={{ 
+              ...startBtnStyle, 
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: level.color, 
+              color: level.textColor,
+              fontSize: isMobile ? 18 : 22,
+              height: isMobile ? 60 : 72,
+              width: isMobile ? '90%' : '100%',
+              maxWidth: isMobile ? 400 : 'none',
+              position: 'relative',
+              zIndex: 2,
+              overflow: 'hidden',
+              boxShadow: `0 10px 40px rgba(0,0,0,0.4), 0 0 20px ${level.color}44`,
+              border: `1px solid rgba(255,255,255,0.2)`,
+              animation: 'bloom 2s infinite alternate ease-in-out'
+            }}
+          >
+            <div style={{
+              position: 'absolute', top: 0, left: '-120%', width: '100%', height: '100%',
+              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
+              animation: 'glint 3.5s infinite linear'
+            }} />
+            
+            <span style={{ position: 'relative', zIndex: 1, letterSpacing: isMobile ? 2 : 4 }}>
+              START LEVEL 0{level.number}
+            </span>
+          </button>
+        </div>
       </div>
-    </article>
+    </div>
   );
 }
 
-// ── Star display ──────────────────────────────────────────────────────────────
 
-function Stars({ earned, color }) {
+// ── Shared UI ────────────────────────────────────────────────────────────────
+
+function GlobalStat({ label, value, isMobile }) {
   return (
-    <div style={{ display: 'flex', gap: 2 }}>
+    <div style={{ textAlign: isMobile ? 'left' : 'right' }}>
+      <div style={{ fontSize: isMobile ? 8 : 11, letterSpacing: 2, fontWeight: 800, color: 'rgba(126,200,255,0.6)', marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: isMobile ? 18 : 32, fontWeight: 900, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>{value}</div>
+    </div>
+  );
+}
+
+function SectionHeader({ label }) {
+  return (
+    <div style={{ fontSize: 11, letterSpacing: 4, fontWeight: 800, color: '#7ec8ff', paddingBottom: 10, borderBottom: '2px solid rgba(126,200,255,0.2)', display: 'inline-block' }}>{label}</div>
+  );
+}
+
+function Stars({ earned, color, size = 14 }) {
+  return (
+    <div style={{ display: 'flex', gap: 6 }}>
       {[0, 1, 2].map(i => (
-        <svg key={i} width="14" height="14" viewBox="0 0 20 20"
-             fill={i < earned ? color : 'rgba(255,255,255,0.15)'}>
+        <svg key={i} width={size} height={size} viewBox="0 0 20 20" fill={i < earned ? color : 'rgba(255,255,255,0.08)'} style={{ filter: i < earned ? `drop-shadow(0 0 15px ${color})` : 'none' }}>
           <path d="M10 1l2.6 5.6 6.2.7-4.7 4.2 1.3 6.1L10 14.7 4.6 17.6 5.9 11.5 1.2 7.3l6.2-.7z" />
         </svg>
       ))}
@@ -235,11 +480,20 @@ function Stars({ earned, color }) {
   );
 }
 
-// ── Tiny NZ flag ──────────────────────────────────────────────────────────────
-
-function NZFlag() {
+function RatingHint({ stars, label, pts }) {
   return (
-    <svg width="28" height="16" viewBox="0 0 28 16" style={{ borderRadius: 2 }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 800, letterSpacing: 1 }}>
+      <span style={{ color: 'rgba(255,255,255,0.4)' }}>{stars} STAR: {label}</span>
+      <span style={{ color: '#7ec8ff' }}>{pts} PTS</span>
+    </div>
+  );
+}
+
+function NZFlag({ size = 'normal' }) {
+  const w = size === 'small' ? 24 : 32;
+  const h = size === 'small' ? 14 : 18;
+  return (
+    <svg width={w} height={h} viewBox="0 0 28 16" style={{ borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
       <rect width="28" height="16" fill="#00247d" />
       <rect width="14" height="8" fill="#00247d" />
       <line x1="0" y1="0" x2="14" y2="8" stroke="#fff" strokeWidth="2" />
@@ -250,7 +504,7 @@ function NZFlag() {
       <rect x="0"   y="3" width="14" height="2" fill="#fff" />
       <rect x="6.5" y="0" width="1" height="8" fill="#cc0001" />
       <rect x="0"   y="3.5" width="14" height="1" fill="#cc0001" />
-      {[{ cx: 22, cy: 3 }, { cx: 25, cy: 6 }, { cx: 19, cy: 7 }, { cx: 24, cy: 11 }].map((s) => (
+      {size !== 'small' && [{ cx: 22, cy: 3 }, { cx: 25, cy: 6 }, { cx: 19, cy: 7 }, { cx: 24, cy: 11 }].map((s) => (
         <g key={`${s.cx}-${s.cy}`}>
           <circle cx={s.cx} cy={s.cy} r="1.6" fill="#fff" />
           <circle cx={s.cx} cy={s.cy} r="0.9" fill="#cc0001" />
@@ -259,3 +513,19 @@ function NZFlag() {
     </svg>
   );
 }
+
+const closeBtnStyle = {
+  background: 'rgba(255,255,255,0.1)', border: 'none',
+  borderRadius: 8, color: '#fff',
+  fontSize: 12, fontWeight: 900, cursor: 'pointer', letterSpacing: 1
+};
+const objRowStyle = {
+  display: 'flex', alignItems: 'center', gap: 16,
+  color: 'rgba(255,255,255,0.9)', background: 'rgba(126,200,255,0.06)',
+  borderRadius: 8, borderLeft: '3px solid rgba(126,200,255,0.3)'
+};
+const startBtnStyle = {
+  flex: 1, border: 'none', padding: '20px', borderRadius: 8,
+  fontWeight: 900, cursor: 'pointer', letterSpacing: 4,
+  boxShadow: '0 20px 40px rgba(0,0,0,0.5)', transition: 'transform 0.2s'
+};
