@@ -1,4 +1,5 @@
 // Top-level Mission HUD — dark tactical style.
+import { useState }       from 'react';
 import './animations.css';
 import { useGame }        from '../engine/useGame.js';
 import TopStrip           from './TopStrip.jsx';
@@ -12,6 +13,7 @@ import FinishCard         from './FinishCard.jsx';
 import ClickOverlay       from './ClickOverlay.jsx';
 import KeyHint            from './KeyHint.jsx';
 import TouchControls      from './TouchControls.jsx';
+import TutorialModal      from './TutorialModal.jsx';
 
 const IS_TOUCH = globalThis.window !== undefined
   && ('ontouchstart' in globalThis || navigator.maxTouchPoints > 0);
@@ -28,8 +30,13 @@ export default function MissionVariant({
   height = 500,
   isMobile = false,
 }) {
+  // Show tutorial on Level 1 only, before the game starts.
+  const [showTutorial, setShowTutorial] = useState(level?.number === 1);
+
   const { canvasRef, game, reset, setKey } = useGame({
-    width, height, active, level, difficulty,
+    width, height,
+    active: active && !showTutorial,   // pause game while tutorial is open
+    level, difficulty,
   });
 
   const hazards  = game.level?.hazards ?? [];
@@ -108,7 +115,9 @@ export default function MissionVariant({
         />
       )}
 
-      <ClickOverlay active={active} onActivate={onActivate} />
+      {showTutorial && (
+        <TutorialModal onComplete={() => setShowTutorial(false)} />
+      )}
     </div>
   );
 }
