@@ -37,12 +37,6 @@ const STEPS = [
     card: { top: 144, centerX: true },
     spotlight: { top: 84, centerX: true, w: 300, h: 46 },
   },
-  {
-    title: "You're Ready to Drive!",
-    body: 'W / ↑  Accelerate  ·  S / ↓  Brake\nA / D  or  ← / →  Steer\nSPACE  Handbrake  ·  R  Restart level',
-    card: { center: true },
-    spotlight: null,
-  },
 ];
 
 function spotlightStyle(spot) {
@@ -140,7 +134,7 @@ export default function TutorialOverlay({ onDone, isMobile = false }) {
             <button onClick={prev} style={navBtn('secondary')}>← BACK</button>
           )}
           <button onClick={next} style={navBtn('primary')}>
-            {isLast ? 'START DRIVING →' : 'NEXT →'}
+            NEXT →
           </button>
         </div>
       </div>
