@@ -7,7 +7,7 @@ import { drawPedestrian } from './pedestrian.js';
 import { drawCar }        from './car.js';
 import { drawIntersectionTraffic } from './intersection-traffic.js';
 
-export function drawWorld(ctx, g) {
+export function drawWorld(ctx, g, { hideCar = false } = {}) {
   const worldW  = g.level?.worldWidth ?? W;
   const bgColor = g.level?.bgColor   ?? '#7fb35a';
   
@@ -46,7 +46,7 @@ export function drawWorld(ctx, g) {
 
   if (g.ped.state !== 'done') drawPedestrian(ctx, g.ped);
 
-  drawCar(ctx, g.car.x, g.car.y, g.car.angle, '#d83a2e');
+  if (!hideCar) drawCar(ctx, g.car.x, g.car.y, g.car.angle, '#d83a2e');
 
   ctx.restore();
 }

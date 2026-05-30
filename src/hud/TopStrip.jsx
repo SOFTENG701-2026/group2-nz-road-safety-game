@@ -1,7 +1,7 @@
 // Top bar: back · mission title · timer · score · stars · retry · mute
 import { useState } from 'react';
 import StarRating from './StarRating.jsx';
-import { setMuted as setSoundMuted, isMuted } from '../engine/sound.js';
+import { setBgMuted, isBgMuted } from '../engine/sound.js';
 
 function formatTime(sec) {
   const m = Math.floor(sec / 60);
@@ -10,11 +10,11 @@ function formatTime(sec) {
 }
 
 export default function TopStrip({ score, elapsed = 0, onReset, onBack, level, isMobile }) {
-  const [muted, setMuted] = useState(() => isMuted());
+  const [muted, setMuted] = useState(() => isBgMuted());
 
   function toggleMute() {
     const next = !muted;
-    setSoundMuted(next);
+    setBgMuted(next);
     setMuted(next);
   }
 

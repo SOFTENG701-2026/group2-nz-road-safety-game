@@ -247,13 +247,13 @@ function StepDots({ total, current }) {
 // ── Pages config ──────────────────────────────────────────────────────────────
 
 const PAGES = [
-  { title: 'Controls — Move',  subtitle: 'Step 1 of 2', Content: MovementPage },
-  { title: 'Controls — Brake', subtitle: 'Step 2 of 2', Content: BrakePage   },
+  { title: 'Drive / Steer', subtitle: 'Control Your Vehicle', Content: MovementPage },
+  { title: 'Brake', subtitle: 'Stopping & Braking', Content: BrakePage },
 ];
 
 // ── Main modal ────────────────────────────────────────────────────────────────
 
-export default function TutorialModal({ onComplete }) {
+export default function KeyHintModal({ onComplete }) {
   const [page, setPage] = useState(0);
   const { title, subtitle, Content } = PAGES[page];
   const isLast = page === PAGES.length - 1;
@@ -316,7 +316,7 @@ export default function TutorialModal({ onComplete }) {
               boxShadow: isLast ? '0 0 20px rgba(124,230,154,0.4)' : '0 0 20px rgba(126,200,255,0.3)',
             }}
           >
-            {isLast ? 'START DRIVING →' : 'NEXT STEP →'}
+            {isLast ? 'START DRIVING →' : 'NEXT →'}
           </button>
         </div>
       </div>

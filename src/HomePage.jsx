@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LEVELS } from './levels/index.js';
 import { isLevelUnlocked } from './engine/progress.js';
 import { useGame } from './engine/useGame.js';
+import { setBgMuted, isBgMuted } from './engine/sound.js';
 
 // Education-focused theme colors
 const THEME_COLORS = {
@@ -13,6 +14,13 @@ const THEME_COLORS = {
 
 export default function HomePage({ onSelectLevel, progress }) {
   const [selectedBriefing, setSelectedBriefing] = useState(null);
+  const [muted, setMuted] = useState(() => isBgMuted());
+
+  function toggleMute() {
+    const next = !muted;
+    setBgMuted(next);
+    setMuted(next);
+  }
   const [windowSize, setWindowSize] = useState({ 
     width: window.innerWidth, 
     height: window.innerHeight,
@@ -81,16 +89,27 @@ export default function HomePage({ onSelectLevel, progress }) {
           </div>
         </div>
 
-        <div style={{ 
-          textAlign: isMobile ? 'left' : 'right', 
-          display: 'flex', gap: isMobile ? 24 : 40, 
-          background: isMobile ? 'transparent' : 'rgba(13, 30, 48, 0.7)', 
-          padding: isMobile ? 0 : '20px 40px', 
-          borderRadius: 12, border: isMobile ? 'none' : '1px solid rgba(126,200,255,0.3)', 
-          backdropFilter: isMobile ? 'none' : 'blur(10px)' 
-        }}>
-          <GlobalStat label="LEVELS COMPLETED" value={`${Object.keys(progress).length}/${LEVELS.length}`} isMobile={isMobile} />
-          <GlobalStat label="STARS EARNED" value={`${Object.values(progress).reduce((a, b) => a + b, 0)}/${LEVELS.length * 3} ★`} isMobile={isMobile} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 16 : 24 }}>
+          <div style={{
+            textAlign: isMobile ? 'left' : 'right',
+            display: 'flex', gap: isMobile ? 24 : 40,
+            background: isMobile ? 'transparent' : 'rgba(13, 30, 48, 0.7)',
+            padding: isMobile ? 0 : '20px 40px',
+            borderRadius: 12, border: isMobile ? 'none' : '1px solid rgba(126,200,255,0.3)',
+            backdropFilter: isMobile ? 'none' : 'blur(10px)'
+          }}>
+            <GlobalStat label="LEVELS COMPLETED" value={`${Object.keys(progress).length}/${LEVELS.length}`} isMobile={isMobile} />
+            <GlobalStat label="STARS EARNED" value={`${Object.values(progress).reduce((a, b) => a + b, 0)}/${LEVELS.length * 3} ★`} isMobile={isMobile} />
+          </div>
+          <button onClick={toggleMute} title={muted ? 'Unmute' : 'Mute'} style={{
+            background: 'rgba(255,255,255,0.07)',
+            border: '1px solid rgba(255,255,255,0.18)',
+            color: '#fff', borderRadius: 8,
+            width: 40, height: 40, fontSize: 18,
+            cursor: 'pointer', flexShrink: 0,
+          }}>
+            {muted ? '🔇' : '🔊'}
+          </button>
         </div>
       </header>
 
@@ -186,13 +205,14 @@ function BackgroundSim({ width, height }) {
     width, height,
     active: true,
     level: LEVELS[0],
-    difficulty: 'easy'
+    difficulty: 'easy',
+    hideCar: true,
   });
 
   useEffect(() => {
     const timer = setInterval(() => {
       game.keys.up = true;
-      if (game.car.x > 1500) game.car.x = 50; 
+      if (game.car.x > 1500) game.car.x = 50;
     }, 100);
     return () => clearInterval(timer);
   }, [game]);

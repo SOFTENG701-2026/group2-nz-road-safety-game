@@ -1,6 +1,6 @@
 // Top-level Mission HUD — dark tactical style.
-import { useState }       from 'react';
 import './animations.css';
+import { useState }       from 'react';
 import { useGame }        from '../engine/useGame.js';
 import TopStrip           from './TopStrip.jsx';
 import ProgressBar        from './ProgressBar.jsx';
@@ -13,7 +13,8 @@ import FinishCard         from './FinishCard.jsx';
 import ClickOverlay       from './ClickOverlay.jsx';
 import KeyHint            from './KeyHint.jsx';
 import TouchControls      from './TouchControls.jsx';
-import TutorialModal      from './TutorialModal.jsx';
+import TutorialOverlay, { TUTORIAL_KEY } from './TutorialOverlay.jsx';
+import KeyHintModal      from './KeyHintModal.jsx';
 
 const IS_TOUCH = globalThis.window !== undefined
   && ('ontouchstart' in globalThis || navigator.maxTouchPoints > 0);
@@ -30,12 +31,13 @@ export default function MissionVariant({
   height = 500,
   isMobile = false,
 }) {
-  // Show tutorial on Level 1 only, before the game starts.
-  const [showTutorial, setShowTutorial] = useState(level?.number === 1);
+  const [showTutorialKey, setShowTutorialKey] = useState(
+    () => localStorage.getItem(TUTORIAL_KEY)
+  );
 
   const { canvasRef, game, reset, setKey } = useGame({
     width, height,
-    active: active && !showTutorial,   // pause game while tutorial is open
+    active: active && (showTutorialKey !== 'done'),   // pause game while tutorial is open
     level, difficulty,
   });
 
@@ -115,8 +117,18 @@ export default function MissionVariant({
         />
       )}
 
-      {showTutorial && (
-        <TutorialModal onComplete={() => setShowTutorial(false)} />
+      {showTutorialKey === 'keyboard' && (
+        <KeyHintModal onComplete={() => setShowTutorialKey('done')} />
+      )}
+
+      {!showTutorialKey && (
+        <TutorialOverlay
+          isMobile={isMobile}
+          onDone={() => {
+            localStorage.setItem(TUTORIAL_KEY, 'keyboard');
+            setShowTutorialKey('keyboard');
+          }}
+        />
       )}
     </div>
   );
