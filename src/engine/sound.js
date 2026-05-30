@@ -8,6 +8,8 @@ let _filter      = null;   // lowpass — removes harshness
 let _engineGain  = null;   // master gain for engine
 let _engine2Gain = null;   // harmonic gain (quieter than fundamental)
 let _muted       = false;
+let _bgMuted     = false;
+let _bgAudio     = null;
 
 function getCtx() {
   if (!_ctx) {
@@ -158,7 +160,7 @@ export function playTone(tone) {
         o.type = 'sine';
         o.connect(g); g.connect(c.destination);
         o.frequency.value = [523, 659, 784][i];
-        g.gain.setValueAtTime(0.20, now + delay);
+        g.gain.setValueAtTime(0.2, now + delay);
         g.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.3);
         o.start(now + delay); o.stop(now + delay + 0.34);
       });
@@ -190,5 +192,33 @@ export function playBrake() {
   src.start();
 }
 
-export function setMuted(m) { _muted = m; }
-export function isMuted()   { return _muted; }
+// ─── Background music ────────────────────────────────────────────────────────
+
+export function startBgMusic() {
+  if (_bgAudio) return;
+  _bgAudio = new Audio('/soundsurfer-car-297675.mp3');
+  _bgAudio.loop   = true;
+  _bgAudio.volume = (_muted || _bgMuted) ? 0 : 0.1;
+  _bgAudio.play().catch(() => {});
+}
+
+export function stopBgMusic() {
+  if (!_bgAudio) return;
+  _bgAudio.pause();
+  _bgAudio.currentTime = 0;
+  _bgAudio = null;
+}
+
+// Full mute (engine + tones + music)
+export function setMuted(m) {
+  _muted = m;
+  if (_bgAudio) _bgAudio.volume = (_muted || _bgMuted) ? 0 : 0.1;
+}
+export function isMuted() { return _muted; }
+
+// Music-only toggle — does not affect engine or tone sounds
+export function setBgMuted(m) {
+  _bgMuted = m;
+  if (_bgAudio) _bgAudio.volume = (_muted || _bgMuted) ? 0 : 0.1;
+}
+export function isBgMuted() { return _bgMuted; }

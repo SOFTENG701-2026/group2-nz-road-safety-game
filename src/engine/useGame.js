@@ -1,13 +1,12 @@
 // React hook that owns the game state, runs the render+tick loop,
 // and wires keyboard / touch input. The HUD overlays read from `game`.
 import { useRef, useReducer, useEffect, useCallback } from 'react';
-import { W, H } from './constants.js';
 import { createGame } from './state.js';
 import { tick } from './tick.js';
 import { drawWorld } from '../render/index.js';
-import { startEngine, updateEngine, stopEngine, playTone } from './sound.js';
+import { startEngine, updateEngine, stopEngine, playTone, startBgMusic } from './sound.js';
 
-export function useGame({ width, height, active, level, difficulty = 'normal' }) {
+export function useGame({ width, height, active, level, difficulty = 'normal', hideCar = false }) {
   const canvasRef      = useRef(null);
   const gameRef        = useRef(createGame(level));
   const [, force]      = useReducer((x) => x + 1, 0);
@@ -67,17 +66,11 @@ export function useGame({ width, height, active, level, difficulty = 'normal' })
     ctx.scale(dpr, dpr);
     ctx.imageSmoothingEnabled = true;
 
+    // User already clicked "Start Level" — safe to start bg music immediately
+    startBgMusic();
+
     let raf, last = performance.now();
     let frameCount = 0;
-    const worldW = level?.worldWidth ?? W;
-
-    // Initialise camera directly at the car so frame-1 is already correct
-    const g0 = gameRef.current;
-    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-    let cam = {
-      x: clamp(g0.car.x - width  / 2, 0, Math.max(0, worldW - width)),
-      y: clamp(g0.car.y - height / 2, 0, Math.max(0, H - height)),
-    };
 
     const loop = (now) => {
       const dt = Math.min(0.05, (now - last) / 1000);
@@ -98,7 +91,7 @@ export function useGame({ width, height, active, level, difficulty = 'normal' })
       }
 
       ctx.clearRect(0, 0, width, height);
-      drawWorld(ctx, g);
+      drawWorld(ctx, g, { hideCar });
 
       // Re-render React HUD ~10× per second
       frameCount++;
@@ -128,6 +121,7 @@ export function useGame({ width, height, active, level, difficulty = 'normal' })
     if (down && !audioStarted.current) {
       audioStarted.current = true;
       startEngine();
+      startBgMusic();
     }
     gameRef.current.keys[key] = down;
     if (key === 'reset' && down) {
