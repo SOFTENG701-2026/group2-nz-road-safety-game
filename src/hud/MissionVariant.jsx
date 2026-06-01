@@ -37,7 +37,7 @@ export default function MissionVariant({
 
   const { canvasRef, game, reset, setKey } = useGame({
     width, height,
-    active: active && (showTutorialKey !== 'done'),   // pause game while tutorial is open
+    active: active && (showTutorialKey === 'done'),   // pause game while tutorial is open
     level, difficulty,
   });
 
