@@ -195,11 +195,18 @@ export function playBrake() {
 // ─── Background music ────────────────────────────────────────────────────────
 
 export function startBgMusic() {
-  if (_bgAudio) return;
-  _bgAudio = new Audio('/soundsurfer-car-297675.mp3');
-  _bgAudio.loop   = true;
-  _bgAudio.volume = (_muted || _bgMuted) ? 0 : 0.1;
-  _bgAudio.play().catch(() => {});
+  if (!_bgAudio) {
+    // BASE_URL (not a hard-coded "/") so the file resolves when the app is
+    // deployed under a GitHub Pages subpath, e.g. /<repo>/.
+    _bgAudio = new Audio(import.meta.env.BASE_URL + 'soundsurfer-car-297675.mp3');
+    _bgAudio.loop   = true;
+    _bgAudio.volume = (_muted || _bgMuted) ? 0 : 0.1;
+  }
+  // Retry play() on every call. The first attempt (page load, via the HomePage
+  // background sim) is blocked by the browser autoplay policy; a later call from
+  // a real user gesture (Start Level click / first key / touch) succeeds. The
+  // old `if (_bgAudio) return` short-circuited those retries, so music never started.
+  if (_bgAudio.paused) _bgAudio.play().catch(() => {});
 }
 
 export function stopBgMusic() {

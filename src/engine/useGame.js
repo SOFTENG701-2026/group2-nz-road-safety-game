@@ -22,6 +22,7 @@ export function useGame({ width, height, active, level, difficulty = 'normal', h
       if (down && !audioStarted.current) {
         audioStarted.current = true;
         startEngine();
+        startBgMusic();   // first keypress is a user gesture → autoplay allowed
       }
       const g = gameRef.current;
       if (e.key === 'ArrowUp'    || e.key === 'w') { g.keys.up    = down; e.preventDefault(); }
