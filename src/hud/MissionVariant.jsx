@@ -10,6 +10,7 @@ import Minimap            from './Minimap.jsx';
 import SpeedPanel         from './SpeedPanel.jsx';
 import RadioLog           from './RadioLog.jsx';
 import FinishCard         from './FinishCard.jsx';
+import CrashCard          from './CrashCard.jsx';
 import ClickOverlay       from './ClickOverlay.jsx';
 import KeyHint            from './KeyHint.jsx';
 import TouchControls      from './TouchControls.jsx';
@@ -113,6 +114,15 @@ export default function MissionVariant({
           onBack={onBack}
           onNextLevel={onNextLevel}
           onComplete={onComplete}
+          isMobile={isMobile}
+        />
+      )}
+
+      {game.crashed && !game.finished && (
+        <CrashCard
+          game={game}
+          onReset={reset}
+          onBack={onBack}
           isMobile={isMobile}
         />
       )}
