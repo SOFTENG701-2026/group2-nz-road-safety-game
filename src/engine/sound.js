@@ -71,9 +71,6 @@ export function startEngine() {
 }
 
 export function updateEngine(speed) {
-  if (!_engine || !_engineGain || _filter || _muted) {
-    // Guard: if filter is missing, don't call (avoids null deref)
-  }
   if (!_engine || !_engineGain || !_filter || _muted) return;
   const c = getCtx();
   if (!c) return;
