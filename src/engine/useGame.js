@@ -128,7 +128,7 @@ export function useGame({ width, height, active, level, difficulty = 'normal', h
     if (key === 'reset' && down) {
       reset();
     }
-  }, []);
+  }, [reset]);
 
   return { canvasRef, game: gameRef.current, reset, setKey };
 }

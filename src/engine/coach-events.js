@@ -124,11 +124,6 @@ export function stepCoachEvents(g, dt) {
         if (obj) obj.done = true;
         setCoach(g, 'roundaboutGood');
       }
-      const giveWayObj = g.objectives.find(o => o.id === 'roundabout-giveway');
-      if (giveWayObj && !giveWayObj.done && !giveWayObj.fail) {
-        giveWayObj.done = true;
-        logEvent(g, 'Gave way in roundabout', +10);
-      }
     }
     const giveWayObj = g.objectives.find(o => o.id === 'roundabout-giveway');
     const npcFinished = (g.roundaboutTraffic ?? []).some(vehicle => vehicle.done);
@@ -245,7 +240,7 @@ export function stepCoachEvents(g, dt) {
   }
   if (!g.flags.wrongSideWarned && c.x > finishX - 200) {
     const obj = g.objectives.find(o => o.id === 'left');
-    if (obj && !obj.done) obj.done = true;
+    if (obj && !obj.done && !obj.fail) obj.done = true;
   }
 
   // ── General speeding warning (outside school/gravel zones) ───────────────

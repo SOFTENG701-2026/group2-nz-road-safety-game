@@ -32,9 +32,11 @@ export default function MissionVariant({
   height = 500,
   isMobile = false,
 }) {
-  const [showTutorialKey, setShowTutorialKey] = useState(
-    () => localStorage.getItem(TUTORIAL_KEY)
-  );
+  const [showTutorialKey, setShowTutorialKey] = useState(() => {
+    const val = localStorage.getItem(TUTORIAL_KEY);
+    // Normalise: only accept known states; anything else restarts the tutorial
+    return (val === 'keyboard' || val === 'done') ? val : null;
+  });
 
   const { canvasRef, game, reset, setKey } = useGame({
     width, height,
