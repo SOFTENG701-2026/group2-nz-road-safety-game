@@ -1,9 +1,17 @@
-# School Run Aotearoa - Mission Map
+# NZ Road Safety Challenge
 
-A top-down New Zealand road-safety driving game built with **React + Vite**. One complete level is included: drive east past a school, watch for the pedestrian crossing, handle the give-way intersection, and reach the finish line. The overlay uses a tactical dispatch-style HUD.
+A top-down New Zealand road-safety driving game built with **React + Vite**. Includes four complete levels featuring school zones, pedestrian crossings, roundabouts, one-lane bridges, and more. The overlay uses a tactical dispatch-style HUD.
 
-![Gameplay screenshot placeholder](./docs/screenshot.png)
-<sub>Add a gameplay screenshot at `docs/screenshot.png`.</sub>
+**🚀 Try it out on GitHub Pages: [https://softeng701-2026.github.io/group2-nz-road-safety-game/](https://softeng701-2026.github.io/group2-nz-road-safety-game/)**
+
+![Gameplay screenshot placeholder](./docs/screenshot.jpeg)
+
+## Levels
+
+1.  **Suburban Streets**: School zones, pedestrian crossings & give-way.
+2.  **City Commute**: Roundabouts, pedestrian crossings & urban intersections.
+3.  **Rural Road Trip**: Railway crossings, one-lane bridges & gravel roads.
+4.  **Mountain Pass**: Icy roads, bridges, rail crossings & give-way — the full test.
 
 ## Quick Start
 
@@ -40,7 +48,8 @@ The dev server runs at `http://localhost:5173` by default. Edit files under `src
 ```text
 src/
   main.jsx              Vite entry; mounts <App>
-  App.jsx               Root component
+  App.jsx               Root component (handles level selection)
+  HomePage.jsx          Level selection menu
   index.css             Global page styles
 
   engine/               Game logic
@@ -50,12 +59,13 @@ src/
     scenery.js          Decorative scenery data
     signs-data.js       Road sign positions
     coach-lines.js      Coach and dispatch copy
-    hazards.js          Ordered route hazards for the HUD
+    intersection-traffic.js NPC traffic logic (cars, roundabouts)
+    progress.js         Level unlocking and star ratings
     state.js            createGame() factory and mutators
     physics.js          Car physics step
-    npc.js              NPC car behaviour
     pedestrian.js       Pedestrian crossing behaviour
     coach-events.js     Scoring and coach triggers
+    sound.js            Web Audio engine hum and background music
     tick.js             Per-frame game step
     useGame.js          React hook for state, input, and rendering
 
@@ -67,6 +77,7 @@ src/
     roads.js            Roads, lane lines, crossings, finish line
     signs.js            Road sign drawing
     pedestrian.js       Pedestrian sprite
+    intersection-traffic.js NPC car drawing
     car.js              Car sprite
 
   hud/                  React HUD overlay components
@@ -74,34 +85,36 @@ src/
     TopStrip.jsx        Mission title, score, rating, retry
     ProgressBar.jsx     Route progress bar
     ObjectivesPanel.jsx Objective checklist
-    NextHazardCallout.jsx
-    NextHazardStrip.jsx
+    TutorialOverlay.jsx Onboarding step-by-step tour
+    TouchControls.jsx   Mobile/Touch input overlays
     Minimap.jsx
     SpeedPanel.jsx
     RadioLog.jsx
     FinishCard.jsx
-    ClickOverlay.jsx
     KeyHint.jsx
     StarRating.jsx
+
+  levels/               Level definitions
+    index.js            Level configurations, hazards, and scenery
 ```
 
 ## Common Changes
 
 | What you want to change                | Edit this file                                      |
 | -------------------------------------- | --------------------------------------------------- |
-| World size, road layout, school zone   | `src/engine/constants.js`                           |
-| Pedestrian, NPC, coach behaviour       | `src/engine/pedestrian.js`, `npc.js`, `coach-events.js` |
-| Scoring or new objectives              | `src/engine/state.js` and `coach-events.js`         |
+| Add or modify a level                  | `src/levels/index.js`                               |
+| World size, road layout constants      | `src/engine/constants.js`                           |
+| Pedestrian, NPC, coach behaviour       | `src/engine/pedestrian.js`, `intersection-traffic.js`, `coach-events.js` |
+| Scoring or state logic                 | `src/engine/state.js` and `coach-events.js`         |
 | Coach wording or new lines             | `src/engine/coach-lines.js`                         |
-| Decorative scenery                     | `src/engine/scenery.js`                             |
+| Decorative scenery drawing             | `src/render/scenery.js`                             |
 | Road sign appearance                   | `src/render/signs.js`                               |
 | HUD layout                             | `src/hud/MissionVariant.jsx`                        |
-| One HUD panel                          | `src/hud/<PanelName>.jsx`                           |
 
 ## Architecture
 
 ```text
-Keyboard input
+Keyboard/Touch input
     |
     v
 useGame.js
@@ -113,7 +126,7 @@ useGame.js
 
 tick(g, dt)
     - stepPhysics
-    - stepNpc
+    - stepIntersectionTraffic (NPCs)
     - stepPedestrian
     - stepCoachEvents
 
@@ -123,6 +136,7 @@ drawWorld(ctx, g, camera)
     - drawRoads
     - drawSigns
     - drawPedestrian
+    - drawIntersectionTraffic
     - drawCar
 ```
 
@@ -135,8 +149,6 @@ The workflow at `.github/workflows/deploy.yml` builds and deploys on pushes to `
 1. Push the repo to GitHub.
 2. In **Settings > Pages**, set Source to **GitHub Actions**.
 3. Push to `main`.
-
-For Vercel, Netlify, or a custom domain, leave the Vite `base` value at its default unless the hosting platform requires otherwise.
 
 ## License
 
